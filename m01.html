@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M01 — Welcome to the Forge | Gopher's Forge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --go-blue: #00ACD7;
+    --go-teal: #00D7A0;
+    --amber: #F5A623;
+    --text: #e8ecf5;
+    --muted: #7a859e;
+    --body-max: 760px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .topnav .brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .topnav .brand span { color: var(--go-blue); }
+
+  .module-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 5px 14px;
+    background: rgba(0,172,215,0.1);
+    border: 1px solid rgba(0,172,215,0.25);
+    border-radius: 999px;
+    color: var(--go-blue);
+  }
+
+  .time-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── LESSON HEADER ── */
+  .lesson-header {
+    max-width: var(--body-max);
+    margin: 0 auto;
+    padding: 72px 24px 48px;
+  }
+
+  .lesson-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--go-teal);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .lesson-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 60px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .lesson-title .accent { color: var(--go-blue); }
+
+  .lesson-intro {
+    font-size: 20px;
+    color: var(--muted);
+    line-height: 1.7;
+    font-style: italic;
+    border-left: 3px solid var(--go-blue);
+    padding-left: 20px;
+    margin-top: 28px;
+  }
+
+  .lesson-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .meta-item .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--go-teal);
+    flex-shrink: 0;
+  }
+
+  /* ── BODY ── */
+  .lesson-body {
+    max-width: var(--body-max);
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+  }
+
+  /* ── TYPOGRAPHY ── */
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-top: 56px;
+    margin-bottom: 16px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  h2 .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--go-blue);
+    background: rgba(0,172,215,0.1);
+    border: 1px solid rgba(0,172,215,0.2);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-weight: 400;
+  }
+
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 36px;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  p { margin-bottom: 20px; }
+
+  strong { color: var(--text); font-weight: 600; }
+
+  em { color: var(--go-teal); font-style: italic; }
+
+  a { color: var(--go-blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 32px 0;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .callout-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+
+  .callout-body { flex: 1; }
+
+  .callout-body strong {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+
+  .callout-body p { margin: 0; font-size: 15px; line-height: 1.7; }
+
+  .callout-info {
+    background: rgba(0,172,215,0.07);
+    border: 1px solid rgba(0,172,215,0.2);
+  }
+
+  .callout-tip {
+    background: rgba(0,215,160,0.07);
+    border: 1px solid rgba(0,215,160,0.2);
+  }
+
+  .callout-tip .callout-body p, .callout-tip .callout-body strong { color: var(--go-teal); }
+
+  .callout-fun {
+    background: rgba(245,166,35,0.07);
+    border: 1px solid rgba(245,166,35,0.2);
+  }
+
+  .callout-fun .callout-body p, .callout-fun .callout-body strong { color: var(--amber); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 28px 0;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--go-blue);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .code-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  pre {
+    padding: 24px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .kw { color: #569cd6; }
+  .fn { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .cm { color: #6a9955; font-style: italic; }
+  .pk { color: #4ec9b0; }
+  .num { color: #b5cea8; }
+  .op { color: #d4d4d4; }
+
+  /* ── COMPARISON TABLE ── */
+  .comparison {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 28px 0;
+    font-size: 15px;
+  }
+
+  .comparison th {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 20px;
+    text-align: left;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--go-blue);
+  }
+
+  .comparison td {
+    padding: 12px 20px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .comparison tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  .comparison td.yes { color: var(--go-teal); }
+  .comparison td.no { color: #ff6b6b; }
+  .comparison td.meh { color: var(--amber); }
+
+  /* ── PHILOSOPHY CARDS ── */
+  .philosophy-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 28px 0;
+  }
+
+  @media (max-width: 600px) {
+    .philosophy-grid { grid-template-columns: 1fr; }
+    .topnav { padding: 16px 20px; }
+    .lesson-header, .lesson-body { padding-left: 20px; padding-right: 20px; }
+  }
+
+  .philosophy-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .philosophy-card .ph-icon { font-size: 28px; margin-bottom: 10px; }
+
+  .philosophy-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .philosophy-card p {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ── INLINE CODE ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+    background: rgba(0,172,215,0.1);
+    color: var(--go-blue);
+    padding: 2px 7px;
+    border-radius: 5px;
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    max-width: var(--body-max);
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .next-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: var(--go-blue);
+    color: #fff;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .next-btn:hover { opacity: 0.85; text-decoration: none; }
+
+  /* ── CHECKPOINT ── */
+  .checkpoint {
+    background: rgba(0,215,160,0.06);
+    border: 1px solid rgba(0,215,160,0.25);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 40px 0;
+  }
+
+  .checkpoint h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--go-teal);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .checkpoint ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .checkpoint ul li {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    padding: 6px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+  }
+
+  .checkpoint ul li::before {
+    content: '✓';
+    color: var(--go-teal);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── QUOTE ── */
+  blockquote {
+    border-left: 3px solid var(--go-blue);
+    padding: 4px 0 4px 24px;
+    margin: 32px 0;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 19px;
+  }
+
+  blockquote cite {
+    display: block;
+    margin-top: 10px;
+    font-style: normal;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--go-blue);
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="brand">Gopher's <span>Forge</span></div>
+  <span class="module-badge">M01</span>
+  <span class="time-badge">⏱ 30 min</span>
+</nav>
+
+<!-- LESSON HEADER -->
+<header class="lesson-header">
+  <div class="lesson-eyebrow">Day 1 · Module 01 · Introduction</div>
+  <h1 class="lesson-title">Welcome to<br/> the <span class="accent">Forge</span></h1>
+  <p class="lesson-intro">
+    Before we write a single line of code, you need to understand why Go exists,
+    what makes it special, and why you're about to have way too much fun with a language
+    that looks boring on the surface.
+  </p>
+  <div class="lesson-meta">
+    <div class="meta-item"><span class="dot"></span> Day 1 of 2</div>
+    <div class="meta-item"><span class="dot"></span> 30 minutes</div>
+    <div class="meta-item"><span class="dot"></span> No code yet — just vibes</div>
+  </div>
+</header>
+
+<!-- LESSON BODY -->
+<main class="lesson-body">
+
+  <hr class="divider"/>
+
+  <!-- SECTION 1 -->
+  <h2><span class="section-num">§1</span> Let's Be Honest About Your Situation</h2>
+
+  <p>
+    You're here because you've heard about Go. Maybe someone at work mentioned it.
+    Maybe you saw a job listing that listed it. Maybe a YouTube algorithm decided
+    you needed this in your life at 2am. Doesn't matter.
+  </p>
+
+  <p>
+    Whatever brought you here, you're now staring at a language that was invented
+    at Google in 2007 by three engineers who were collectively tired of C++.
+    That's the whole origin story. <strong>Frustration.</strong> Beautiful, productive frustration.
+  </p>
+
+  <div class="callout callout-fun">
+    <span class="callout-icon">😂</span>
+    <div class="callout-body">
+      <strong>Fun Fact</strong>
+      <p>Go was designed while waiting for C++ code to compile. Literally. Rob Pike, Ken Thompson, and Robert Griesemer were sitting around watching a build run, looked at each other, and basically said: "we could invent a new language before this finishes." They weren't wrong.</p>
+    </div>
+  </div>
+
+  <p>
+    Their goal was simple: build a language that was as <strong>fast as C</strong>, as
+    <strong>readable as Python</strong>, and actually <strong>enjoyable to use</strong> at scale.
+    The result is Go — a language that looks so simple it almost makes you suspicious.
+  </p>
+
+  <blockquote>
+    "Go is an open source programming language that makes it easy to build simple, reliable, and efficient software."
+    <cite>— golang.org (and they mean every word of it)</cite>
+  </blockquote>
+
+  <hr class="divider"/>
+
+  <!-- SECTION 2 -->
+  <h2><span class="section-num">§2</span> The Problem Go Was Born to Solve</h2>
+
+  <p>
+    To really appreciate Go, you need to feel the pain it was designed to eliminate.
+    Imagine you're building a backend service at Google — handling millions of requests
+    per second, running on thousands of machines. Your options in the mid-2000s were roughly:
+  </p>
+
+  <table class="comparison">
+    <thead>
+      <tr>
+        <th>Language</th>
+        <th>Speed</th>
+        <th>Easy to Write?</th>
+        <th>Scales Well?</th>
+        <th>Concurrency?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>C / C++</strong></td>
+        <td class="yes">🚀 Blazing</td>
+        <td class="no">😭 Painful</td>
+        <td class="yes">Yes</td>
+        <td class="meh">Manual nightmare</td>
+      </tr>
+      <tr>
+        <td><strong>Java</strong></td>
+        <td class="meh">🐢 Decent</td>
+        <td class="meh">Verbose</td>
+        <td class="yes">Yes</td>
+        <td class="meh">Threads everywhere</td>
+      </tr>
+      <tr>
+        <td><strong>Python</strong></td>
+        <td class="no">🐌 Slow</td>
+        <td class="yes">😍 Lovely</td>
+        <td class="no">With effort</td>
+        <td class="no">GIL says no</td>
+      </tr>
+      <tr>
+        <td><strong>Go</strong></td>
+        <td class="yes">⚡ Very Fast</td>
+        <td class="yes">😌 Clean</td>
+        <td class="yes">Built for it</td>
+        <td class="yes">First-class citizen</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Go sits in a sweet spot that didn't really exist before. It compiles to a
+    native binary (no virtual machine, no runtime overhead), it reads almost
+    like pseudocode, and it treats concurrency as something you reach for
+    as naturally as a <code>for</code> loop — not a PhD dissertation topic.
+  </p>
+
+  <hr class="divider"/>
+
+  <!-- SECTION 3 -->
+  <h2><span class="section-num">§3</span> The Go Philosophy — It's Aggressively Simple</h2>
+
+  <p>
+    Go has a philosophy, and it's kind of radical: <strong>if a feature makes the
+    language more complex, it probably shouldn't be in Go.</strong>
+  </p>
+
+  <p>
+    This sounds boring. It's actually liberating.
+  </p>
+
+  <p>
+    Go has no classes. No inheritance. No generics drama (they finally added basic generics
+    in 1.18, but let's not get into that on day one). No exceptions. No ternary operators.
+    No implicit type coercion. The designers made a hundred decisions to say <em>no</em>
+    so that the language would stay readable by anyone, not just the person who wrote it.
+  </p>
+
+  <div class="philosophy-grid">
+    <div class="philosophy-card">
+      <div class="ph-icon">🧹</div>
+      <h4>Simplicity Over Cleverness</h4>
+      <p>There's usually one way to do something in Go. No "ten ways to skin a cat." This means code written by a junior reads the same as code written by a senior.</p>
+    </div>
+    <div class="philosophy-card">
+      <div class="ph-icon">⚡</div>
+      <h4>Fast Compilation</h4>
+      <p>Go compiles in seconds, not minutes. It imports exactly what it needs, and the build system is built-in. No Makefile archaeology required.</p>
+    </div>
+    <div class="philosophy-card">
+      <div class="ph-icon">🤝</div>
+      <h4>Concurrency is Built-In</h4>
+      <p>Goroutines and channels are core language features, not third-party libraries. You can run thousands of them cheaply. This alone is worth learning Go for.</p>
+    </div>
+    <div class="philosophy-card">
+      <div class="ph-icon">🔒</div>
+      <h4>The Compiler is Your Honest Friend</h4>
+      <p>Go will refuse to compile unused variables or imports. It will catch your errors at compile time. It is strict, opinionated, and it is right about 95% of the time.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-body">
+      <strong>The Forge Principle</strong>
+      <p>When Go feels restrictive, that's intentional. You're not fighting the language — you're being guided by it. Lean into it. You'll thank yourself when you're debugging code six months later and it still makes complete sense.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- SECTION 4 -->
+  <h2><span class="section-num">§4</span> Where Go Actually Shines</h2>
+
+  <p>
+    Go is not the right tool for everything — and it doesn't try to be.
+    Here's where it genuinely excels:
+  </p>
+
+  <h3>🌐 Backend Services & APIs</h3>
+  <p>
+    This is Go's home turf. Companies like <strong>Uber, Dropbox, Docker, Cloudflare,
+    and Netflix</strong> all use Go extensively for backend services. Its small memory
+    footprint and fast startup time make it ideal for microservices. You can build a
+    production-quality HTTP server using <em>nothing but the standard library</em>.
+    That's what we'll do in Day 2.
+  </p>
+
+  <h3>🛠️ CLI Tools</h3>
+  <p>
+    Go compiles to a single binary with no dependencies. You build it, ship it, and it
+    runs anywhere. No "install Node first." No "make sure Python 3.11 is configured."
+    Just one file. This makes it perfect for developer tooling — which is why tools like
+    <strong>kubectl, Terraform, Hugo, and GitHub CLI</strong> are all written in Go.
+  </p>
+
+  <h3>⚡ Concurrent & Networked Programs</h3>
+  <p>
+    If you need to handle thousands of simultaneous connections, process jobs in parallel,
+    or build a network proxy — Go's goroutine model makes this feel almost too easy.
+    We'll see this firsthand when we build our concurrent web scraper.
+  </p>
+
+  <h3>☁️ Cloud Infrastructure</h3>
+  <p>
+    Docker is written in Go. Kubernetes is written in Go. A huge chunk of the modern
+    cloud infrastructure stack is Go. If you're going into DevOps, platform engineering,
+    or cloud development, Go will keep showing up in your life whether you planned for it or not.
+  </p>
+
+  <hr class="divider"/>
+
+  <!-- SECTION 5 -->
+  <h2><span class="section-num">§5</span> What Go Looks Like (Your First Glimpse)</h2>
+
+  <p>
+    You haven't set up Go yet — that's next module. But I want you to see what the
+    language actually looks like before we dive in. Here's the classic "Hello, World"
+    and a tiny taste of what makes Go unique.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Go</span>
+      <span class="code-label">hello.go — your first glimpse</span>
+    </div>
+    <pre><span class="cm">// Every Go file starts with a package declaration.</span>
+<span class="cm">// 'main' is special — it's the entry point of your program.</span>
+<span class="kw">package</span> main
+
+<span class="cm">// We import the 'fmt' package for printing to the console.</span>
+<span class="cm">// Go will refuse to compile if you import something you don't use.</span>
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="cm">// The main() function is where your program starts running.</span>
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Hello, Gopher! Welcome to the Forge. 🔨"</span>)
+}</pre>
+  </div>
+
+  <p>
+    Already there are things worth noticing. No semicolons. No <code>public static void main</code>
+    ceremony. No parentheses around the <code>if</code> conditions you'll write later.
+    The code just <em>breathes</em>. Keep this in mind as you learn — readability isn't
+    an accident in Go. It's a design choice made at every level.
+  </p>
+
+  <p>Now let's look at something a little more dramatic — a sneak peek at Go's concurrency:</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Go</span>
+      <span class="code-label">concurrent.go — don't worry about this yet, just admire it</span>
+    </div>
+    <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"fmt"</span>
+    <span class="str">"sync"</span>
+)
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="kw">var</span> wg sync.WaitGroup
+
+    <span class="cm">// Launch 5 goroutines — lightweight concurrent functions.</span>
+    <span class="cm">// That 'go' keyword is all it takes. Seriously.</span>
+    <span class="kw">for</span> i := <span class="num">1</span>; i <= <span class="num">5</span>; i++ {
+        wg.<span class="fn">Add</span>(<span class="num">1</span>)
+        <span class="kw">go func</span>(id <span class="kw">int</span>) {
+            <span class="kw">defer</span> wg.<span class="fn">Done</span>()
+            <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Goroutine %d says: I'm running concurrently!\n"</span>, id)
+        }(i)
+    }
+
+    wg.<span class="fn">Wait</span>() <span class="cm">// Wait for all goroutines to finish</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"All goroutines done. That was easy."</span>)
+}</pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">👀</span>
+    <div class="callout-body">
+      <strong>Don't stress about the code above</strong>
+      <p>You don't need to understand this yet — that's Day 2, Module 8 material. I just want you to notice how little code it took to spin up 5 concurrent functions. That one word — <code>go</code> — does all the heavy lifting. By Sunday evening, this will feel completely natural to you.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- SECTION 6 -->
+  <h2><span class="section-num">§6</span> What We're Building This Weekend</h2>
+
+  <p>
+    Here's the commitment Gopher's Forge makes to you: <strong>you will ship real working
+    programs today and tomorrow.</strong> Not toy examples. Not "print the Fibonacci sequence."
+    Actual programs you could put on a resume.
+  </p>
+
+  <p>By the end of Day 1 you'll have:</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">terminal</span>
+      <span class="code-label">what you'll be running by tonight</span>
+    </div>
+    <pre><span class="cm">$ go run tasks.go add "Learn Go this weekend"</span>
+<span class="op">✅ Task added: "Learn Go this weekend"</span>
+
+<span class="cm">$ go run tasks.go list</span>
+<span class="op">📋 Your Tasks:
+   [ ] 1. Learn Go this weekend</span>
+
+<span class="cm">$ go run tasks.go done 1</span>
+<span class="op">🎉 Task 1 marked as complete!</span></pre>
+  </div>
+
+  <p>And by the end of Day 2, you'll have a real HTTP server running on your machine:</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">terminal</span>
+      <span class="code-label">your capstone — a live URL shortener API</span>
+    </div>
+    <pre><span class="cm">$ curl -X POST http://localhost:8080/shorten \</span>
+<span class="cm">       -d '{"url": "https://golang.org/doc/effective_go"}'</span>
+
+<span class="op">{"short_code": "abc123", "short_url": "http://localhost:8080/abc123"}</span>
+
+<span class="cm">$ curl http://localhost:8080/abc123</span>
+<span class="op">→ Redirecting to https://golang.org/doc/effective_go</span></pre>
+  </div>
+
+  <p>
+    That's a working URL shortener with persistence, routing, and JSON responses — built by <em>you</em>
+    in a language you didn't know 48 hours ago.
+  </p>
+
+  <hr class="divider"/>
+
+  <!-- CHECKPOINT -->
+  <div class="checkpoint">
+    <h4>✅ Module 01 Checkpoint</h4>
+    <ul>
+      <li>You know why Go was created and the problem it solves</li>
+      <li>You understand Go's core philosophy: simplicity, speed, and built-in concurrency</li>
+      <li>You know where Go shines: APIs, CLI tools, concurrent systems, cloud infra</li>
+      <li>You've seen what Go code looks like for the first time</li>
+      <li>You know exactly what you'll build by the end of this weekend</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-fun">
+    <span class="callout-icon">🔨</span>
+    <div class="callout-body">
+      <strong>Anas's Note</strong>
+      <p>Every professional Go developer you've ever heard of started exactly where you are right now — looking at a new language and wondering if they can pull it off. They could. You will too. The Forge doesn't make promises it can't keep. Let's build something.</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="next-btn" href="#">Next: M02 — Setup &amp; Hello, Gopher! →</a>
+</div>
+
+</body>
+</html>
