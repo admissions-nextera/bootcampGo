@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M05 — Functions & Error Handling | Gopher's Forge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --go-blue: #00ACD7;
+    --go-teal: #00D7A0;
+    --amber: #F5A623;
+    --red: #FF6B6B;
+    --text: #e8ecf5;
+    --muted: #7a859e;
+    --body-max: 760px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(12px); z-index: 100;
+  }
+  .topnav .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--text); }
+  .topnav .brand span { color: var(--go-blue); }
+  .module-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 14px; background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.25); border-radius: 999px; color: var(--go-blue); }
+  .time-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ── HEADER ── */
+  .lesson-header { max-width: var(--body-max); margin: 0 auto; padding: 72px 24px 48px; }
+  .lesson-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-teal); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+  .lesson-title { font-family: 'Syne', sans-serif; font-size: clamp(36px, 6vw, 60px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 20px; }
+  .lesson-title .accent { color: var(--go-blue); }
+  .lesson-intro { font-size: 20px; color: var(--muted); line-height: 1.7; font-style: italic; border-left: 3px solid var(--go-blue); padding-left: 20px; margin-top: 28px; }
+  .lesson-meta { display: flex; gap: 24px; margin-top: 32px; flex-wrap: wrap; }
+  .meta-item { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted); }
+  .meta-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--go-teal); flex-shrink: 0; }
+
+  /* ── BODY ── */
+  .lesson-body { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* ── TYPOGRAPHY ── */
+  h2 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin-top: 56px; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; gap: 12px; }
+  h2 .section-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-blue); background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.2); border-radius: 6px; padding: 3px 9px; font-weight: 400; }
+  h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-top: 40px; margin-bottom: 12px; color: var(--text); }
+  p { margin-bottom: 20px; }
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--go-teal); font-style: italic; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: rgba(0,172,215,0.1); color: var(--go-blue); padding: 2px 7px; border-radius: 5px; }
+  blockquote { border-left: 3px solid var(--go-blue); padding: 4px 0 4px 24px; margin: 32px 0; font-style: italic; color: var(--muted); font-size: 19px; }
+  blockquote cite { display: block; margin-top: 10px; font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-blue); }
+
+  /* ── CALLOUTS ── */
+  .callout { border-radius: 12px; padding: 20px 24px; margin: 32px 0; display: flex; gap: 16px; align-items: flex-start; }
+  .callout-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; font-family: 'Syne', sans-serif; font-size: 15px; margin-bottom: 6px; }
+  .callout-body p { margin: 0; font-size: 15px; line-height: 1.7; }
+  .callout-info  { background: rgba(0,172,215,0.07);  border: 1px solid rgba(0,172,215,0.2); }
+  .callout-info  .callout-body p, .callout-info  .callout-body strong { color: var(--go-blue); }
+  .callout-tip   { background: rgba(0,215,160,0.07);  border: 1px solid rgba(0,215,160,0.2); }
+  .callout-tip   .callout-body p, .callout-tip   .callout-body strong { color: var(--go-teal); }
+  .callout-fun   { background: rgba(245,166,35,0.07); border: 1px solid rgba(245,166,35,0.2); }
+  .callout-fun   .callout-body p, .callout-fun   .callout-body strong { color: var(--amber); }
+  .callout-warn  { background: rgba(255,107,107,0.07);border: 1px solid rgba(255,107,107,0.2);}
+  .callout-warn  .callout-body p, .callout-warn  .callout-body strong { color: var(--red); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 28px 0; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-lang  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--go-blue); letter-spacing: 0.1em; text-transform: uppercase; }
+  .code-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  pre { padding: 24px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.7; }
+  .kw  { color: #569cd6; }
+  .fn  { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .cm  { color: #6a9955; font-style: italic; }
+  .pk  { color: #4ec9b0; }
+  .num { color: #b5cea8; }
+  .op  { color: #d4d4d4; }
+  .prompt { color: var(--go-teal); user-select: none; }
+  .out    { color: var(--muted); }
+  .err    { color: var(--red); }
+
+  /* ── VS BLOCK ── */
+  .vs-block { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0; }
+  .vs-side { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .vs-label { padding: 8px 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .vs-label.bad  { color: var(--red);      background: rgba(255,107,107,0.06); }
+  .vs-label.good { color: var(--go-teal);  background: rgba(0,215,160,0.06); }
+  .vs-label.neutral { color: var(--muted); background: rgba(255,255,255,0.03); }
+  .vs-side pre { padding: 18px 20px; font-size: 13px; }
+
+  /* ── ANNOTATED CODE ── */
+  .annotated-code {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin: 28px 0;
+    width: min(960px, 92vw); margin-left: 50%; transform: translateX(-50%);
+  }
+  .ann-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .ann-header span { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .ann-header .lang { color: var(--go-blue); text-transform: uppercase; letter-spacing: 0.1em; }
+  .ann-header .fname { color: var(--muted); }
+  .ann-line { display: grid; grid-template-columns: 1fr 320px; border-bottom: 1px solid rgba(37,42,56,0.5); }
+  .ann-line:last-child { border-bottom: none; }
+  .ann-code { padding: 12px 24px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.6; border-right: 1px solid var(--border); white-space: pre; overflow-x: auto; }
+  .ann-note { padding: 12px 18px; font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.55; display: flex; align-items: center; background: rgba(255,255,255,0.015); word-break: break-word; }
+  .ann-note.highlight { color: var(--go-teal); background: rgba(0,215,160,0.04); }
+  .ann-note.warn      { color: var(--amber);   background: rgba(245,166,35,0.04); }
+  .ann-note.info      { color: var(--go-blue);  background: rgba(0,172,215,0.04); }
+
+  /* ── FUNCTION ANATOMY ── */
+  .func-anatomy {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 28px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    line-height: 2.2;
+    position: relative;
+    overflow: visible;
+  }
+  .func-anatomy .fa-line {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .fa-kw   { color: #569cd6; }
+  .fa-name { color: #dcdcaa; }
+  .fa-type { color: #4ec9b0; }
+  .fa-str  { color: #ce9178; }
+  .fa-tag  {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .fa-tag-blue  { background: rgba(0,172,215,0.15);  color: var(--go-blue);  border: 1px solid rgba(0,172,215,0.3); }
+  .fa-tag-teal  { background: rgba(0,215,160,0.15);  color: var(--go-teal);  border: 1px solid rgba(0,215,160,0.3); }
+  .fa-tag-amber { background: rgba(245,166,35,0.15); color: var(--amber);    border: 1px solid rgba(245,166,35,0.3); }
+  .fa-tag-red   { background: rgba(255,107,107,0.15);color: var(--red);      border: 1px solid rgba(255,107,107,0.3);}
+
+  /* ── ERROR FLOW DIAGRAM ── */
+  .error-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 28px 0;
+    position: relative;
+  }
+  .ef-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .ef-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+  }
+  .ef-dot {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .ef-dot-blue  { background: rgba(0,172,215,0.15);  color: var(--go-blue);  border: 2px solid var(--go-blue); }
+  .ef-dot-teal  { background: rgba(0,215,160,0.15);  color: var(--go-teal);  border: 2px solid var(--go-teal); }
+  .ef-dot-red   { background: rgba(255,107,107,0.15);color: var(--red);      border: 2px solid var(--red); }
+  .ef-connector { width: 2px; height: 28px; background: var(--border); }
+  .ef-body { padding-bottom: 28px; flex: 1; }
+  .ef-body h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; margin-top: 6px; }
+  .ef-body p  { font-family: 'Inter', sans-serif; font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0; }
+
+  /* ── EXERCISE ── */
+  .exercise { border: 1px solid rgba(245,166,35,0.3); background: rgba(245,166,35,0.04); border-radius: 12px; padding: 24px 28px; margin: 36px 0; }
+  .exercise h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--amber); margin-bottom: 12px; }
+  .exercise p  { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); margin-bottom: 12px; line-height: 1.6; }
+  .exercise p:last-child { margin-bottom: 0; }
+
+  /* ── CHECKPOINT ── */
+  .checkpoint { background: rgba(0,215,160,0.06); border: 1px solid rgba(0,215,160,0.25); border-radius: 12px; padding: 24px 28px; margin: 40px 0; }
+  .checkpoint h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--go-teal); margin-bottom: 12px; }
+  .checkpoint ul { list-style: none; padding: 0; }
+  .checkpoint ul li { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); padding: 6px 0; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+  .checkpoint ul li::before { content: '✓'; color: var(--go-teal); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; display: flex; justify-content: space-between; }
+  .prev-btn, .next-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; text-decoration: none; transition: opacity 0.2s; }
+  .prev-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .next-btn { background: var(--go-blue); color: #fff; }
+  .prev-btn:hover, .next-btn:hover { opacity: 0.85; text-decoration: none; }
+
+  @media (max-width: 700px) {
+    .topnav { padding: 16px 20px; }
+    .lesson-header, .lesson-body { padding-left: 20px; padding-right: 20px; }
+    .vs-block { grid-template-columns: 1fr; }
+    .ann-note { display: none; }
+    .ann-line { grid-template-columns: 1fr; }
+    .ann-code { border-right: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="brand">Gopher's <span>Forge</span></div>
+  <span class="module-badge">M05</span>
+  <span class="time-badge">⏱ 1 hour</span>
+</nav>
+
+<!-- HEADER -->
+<header class="lesson-header">
+  <div class="lesson-eyebrow">Day 1 · Module 05 · The Fundamentals</div>
+  <h1 class="lesson-title">Functions &amp;<br/><span class="accent">Error Handling</span></h1>
+  <p class="lesson-intro">
+    This is the module where Go stops looking like every other language and starts
+    showing its true character. Go's approach to functions and errors is opinionated,
+    explicit, and — once it clicks — genuinely brilliant.
+  </p>
+  <div class="lesson-meta">
+    <div class="meta-item"><span class="dot"></span> Day 1 of 2</div>
+    <div class="meta-item"><span class="dot"></span> 1 hour</div>
+    <div class="meta-item"><span class="dot"></span> The most important module</div>
+  </div>
+</header>
+
+<!-- BODY -->
+<main class="lesson-body">
+
+  <hr class="divider"/>
+
+  <!-- §1 ANATOMY OF A FUNCTION -->
+  <h2><span class="section-num">§1</span> Anatomy of a Go Function</h2>
+
+  <p>
+    Functions in Go are defined with the <code>func</code> keyword. The syntax is clean
+    and consistent — parameters and return types are clearly labeled, with no ceremony.
+    Let's dissect one:
+  </p>
+
+  <div class="func-anatomy">
+    <div class="fa-line">
+      <span class="fa-kw">func</span>
+      <span class="fa-tag fa-tag-blue">keyword</span>
+
+      <span class="fa-name">greet</span>
+      <span class="fa-tag fa-tag-teal">function name</span>
+
+      <span style="color:var(--muted)">(</span>
+      <span class="fa-name" style="color:#9cdcfe">name</span>
+      <span class="fa-type">string</span><span style="color:var(--muted)">,</span>
+      <span class="fa-name" style="color:#9cdcfe">age</span>
+      <span class="fa-type">int</span>
+      <span style="color:var(--muted)">)</span>
+      <span class="fa-tag fa-tag-amber">parameters (name + type)</span>
+
+      <span class="fa-type">string</span>
+      <span class="fa-tag fa-tag-red">return type</span>
+
+      <span style="color:var(--muted)">{ ... }</span>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">a basic function</span></div>
+    <pre><span class="cm">// func name(param type, param type) returnType { }</span>
+<span class="kw">func</span> <span class="fn">greet</span>(name <span class="kw">string</span>, age <span class="kw">int</span>) <span class="kw">string</span> {
+    <span class="kw">return</span> <span class="pk">fmt</span>.<span class="fn">Sprintf</span>(<span class="str">"Hey %s! You're %d and learning Go. Nice."</span>, name, age)
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    message := <span class="fn">greet</span>(<span class="str">"Anas"</span>, <span class="num">25</span>)
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(message)
+}
+<span class="cm">// Output: Hey Anas! You're 25 and learning Go. Nice.</span></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">👀</span>
+    <div class="callout-body">
+      <strong>fmt.Sprintf vs fmt.Println</strong>
+      <p><code>fmt.Sprintf</code> formats a string and <em>returns</em> it — it doesn't print anything. <code>fmt.Println</code> prints and returns nothing. Use <code>Sprintf</code> when you want to build a string to store or return. Use <code>Println</code> when you just want to see it.</p>
+    </div>
+  </div>
+
+  <h3>Shorthand for Same-Type Parameters</h3>
+  <p>
+    When consecutive parameters share the same type, Go lets you write the type once
+    at the end — a small but satisfying shorthand:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">parameter shorthand</span></div>
+    <pre><span class="cm">// Verbose: each param has its own type annotation</span>
+<span class="kw">func</span> <span class="fn">add</span>(a <span class="kw">int</span>, b <span class="kw">int</span>) <span class="kw">int</span> { <span class="kw">return</span> a + b }
+
+<span class="cm">// Shorthand: share the type across same-type params</span>
+<span class="kw">func</span> <span class="fn">add</span>(a, b <span class="kw">int</span>) <span class="kw">int</span> { <span class="kw">return</span> a + b }
+
+<span class="cm">// Works with multiple groups too</span>
+<span class="kw">func</span> <span class="fn">describe</span>(firstName, lastName <span class="kw">string</span>, age, score <span class="kw">int</span>) <span class="kw">string</span> {
+    <span class="kw">return</span> <span class="pk">fmt</span>.<span class="fn">Sprintf</span>(<span class="str">"%s %s — age: %d, score: %d"</span>, firstName, lastName, age, score)
+}</pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §2 MULTIPLE RETURN VALUES -->
+  <h2><span class="section-num">§2</span> Multiple Return Values — Go's Superpower</h2>
+
+  <p>
+    Here's where Go diverges from almost every mainstream language: <strong>functions
+    can return more than one value.</strong> This isn't a workaround or a hack — it's a
+    first-class feature, and it fundamentally changes how Go handles errors.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">returning multiple values</span></div>
+    <pre><span class="cm">// Return two values: result and a success flag</span>
+<span class="kw">func</span> <span class="fn">divide</span>(a, b <span class="kw">float64</span>) (<span class="kw">float64</span>, <span class="kw">bool</span>) {
+    <span class="kw">if</span> b == <span class="num">0</span> {
+        <span class="kw">return</span> <span class="num">0</span>, <span class="kw">false</span>   <span class="cm">// can't divide by zero</span>
+    }
+    <span class="kw">return</span> a / b, <span class="kw">true</span>   <span class="cm">// result + success signal</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    result, ok := <span class="fn">divide</span>(<span class="num">10</span>, <span class="num">3</span>)
+    <span class="kw">if</span> ok {
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Result: %.2f\n"</span>, result)  <span class="cm">// 3.33</span>
+    }
+
+    _, ok2 := <span class="fn">divide</span>(<span class="num">5</span>, <span class="num">0</span>)
+    <span class="kw">if</span> !ok2 {
+        <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Can't divide by zero!"</span>)
+    }
+}</pre>
+  </div>
+
+  <h3>Named Return Values</h3>
+  <p>
+    Go lets you name your return values in the function signature. This makes the
+    function's intent crystal clear, and allows you to use a "naked return" — a
+    <code>return</code> with no arguments that returns whatever the named values hold:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">named return values</span></div>
+    <pre><span class="cm">// Return values are named: 'sum' and 'product'</span>
+<span class="kw">func</span> <span class="fn">calculate</span>(a, b <span class="kw">int</span>) (sum <span class="kw">int</span>, product <span class="kw">int</span>) {
+    sum = a + b         <span class="cm">// assign to named return</span>
+    product = a * b     <span class="cm">// assign to named return</span>
+    <span class="kw">return</span>              <span class="cm">// naked return — returns sum and product</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    s, p := <span class="fn">calculate</span>(<span class="num">4</span>, <span class="num">5</span>)
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Sum: %d, Product: %d\n"</span>, s, p)
+    <span class="cm">// Output: Sum: 9, Product: 20</span>
+}</pre>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>Use naked returns sparingly</strong>
+      <p>Naked returns are fine in short functions, but in longer functions they hurt readability — a reader can't tell what's being returned without scrolling back to the signature. The Go community generally prefers explicit returns in anything longer than ~5 lines.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §3 ERROR HANDLING -->
+  <h2><span class="section-num">§3</span> Error Handling — The Go Way</h2>
+
+  <p>
+    This is the one that makes newcomers raise an eyebrow. In most languages, errors
+    are handled with <code>try/catch</code> blocks — you write your happy path, then
+    catch exceptions that might fly up from anywhere in the call stack.
+  </p>
+
+  <p>
+    Go doesn't have exceptions. <strong>In Go, errors are just values</strong> — returned
+    from functions like any other return value, using the built-in <code>error</code> type.
+    You check for them explicitly, right where they happen.
+  </p>
+
+  <blockquote>
+    "Errors are values. Values can be programmed, and since you can program errors,
+    there are many options for handling them."
+    <cite>— Rob Pike, Go core team</cite>
+  </blockquote>
+
+  <div class="vs-block">
+    <div class="vs-side">
+      <div class="vs-label neutral">🐍 Python / JavaScript</div>
+      <pre style="padding:18px 20px; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--muted)"><span class="kw">try</span>:
+    result = divide(10, 0)
+    do_more_stuff(result)
+    even_more(result)
+<span class="kw">except</span> ZeroDivisionError <span class="kw">as</span> e:
+    print(f<span class="str">"Error: {e}"</span>)
+
+<span class="cm"># Errors can come from ANYWHERE
+# in the try block — hard to tell
+# which line threw.</span></pre>
+    </div>
+    <div class="vs-side">
+      <div class="vs-label good">🐹 Go</div>
+      <pre style="padding:18px 20px; font-family:'JetBrains Mono',monospace; font-size:12.5px;">result, err := <span class="fn">divide</span>(<span class="num">10</span>, <span class="num">0</span>)
+<span class="kw">if</span> err != <span class="kw">nil</span> {
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Error:"</span>, err)
+    <span class="kw">return</span>
+}
+<span class="cm">// You KNOW result is safe here.
+// No hidden control flow.
+// Error source is 100% clear.</span></pre>
+    </div>
+  </div>
+
+  <h3>The error Type</h3>
+  <p>
+    <code>error</code> is a built-in interface in Go. It has one method: <code>Error() string</code>.
+    You create errors with <code>errors.New()</code> or <code>fmt.Errorf()</code>:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">creating and returning errors</span></div>
+    <pre><span class="kw">import</span> (
+    <span class="str">"errors"</span>
+    <span class="str">"fmt"</span>
+)
+
+<span class="cm">// errors.New — simple static error message</span>
+<span class="kw">var</span> ErrDivisionByZero = errors.<span class="fn">New</span>(<span class="str">"cannot divide by zero"</span>)
+
+<span class="kw">func</span> <span class="fn">divide</span>(a, b <span class="kw">float64</span>) (<span class="kw">float64</span>, <span class="kw">error</span>) {
+    <span class="kw">if</span> b == <span class="num">0</span> {
+        <span class="kw">return</span> <span class="num">0</span>, ErrDivisionByZero  <span class="cm">// return zero value + the error</span>
+    }
+    <span class="kw">return</span> a / b, <span class="kw">nil</span>              <span class="cm">// nil means "no error"</span>
+}
+
+<span class="cm">// fmt.Errorf — dynamic error with context</span>
+<span class="kw">func</span> <span class="fn">getUser</span>(id <span class="kw">int</span>) (<span class="kw">string</span>, <span class="kw">error</span>) {
+    <span class="kw">if</span> id <= <span class="num">0</span> {
+        <span class="kw">return</span> <span class="str">""</span>, <span class="pk">fmt</span>.<span class="fn">Errorf</span>(<span class="str">"invalid user id: %d"</span>, id)
+    }
+    <span class="kw">return</span> <span class="str">"Anas"</span>, <span class="kw">nil</span>
+}</pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §4 HANDLING ERRORS PROPERLY -->
+  <h2><span class="section-num">§4</span> Handling Errors Properly</h2>
+
+  <p>
+    Now let's look at the full picture of how to call a function that returns an error
+    and handle it like a professional Gopher. This is the pattern you'll write
+    hundreds of times — get it into your muscle memory.
+  </p>
+
+  <div class="annotated-code">
+    <div class="ann-header">
+      <span class="lang">Go</span>
+      <span class="fname">the canonical error handling pattern — annotated</span>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> <span class="fn">processScore</span>(score <span class="kw">int</span>) (<span class="kw">string</span>, <span class="kw">error</span>) {</div>
+      <div class="ann-note highlight">Function signature: takes an int, returns a string AND an error. Convention: error is always the last return value.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="kw">if</span> score < <span class="num">0</span> || score > <span class="num">100</span> {</div>
+      <div class="ann-note">Validate input. If something is wrong, we won't proceed.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">        <span class="kw">return</span> <span class="str">""</span>, <span class="pk">fmt</span>.<span class="fn">Errorf</span>(<span class="str">"score %d is out of range"</span>, score)</div>
+      <div class="ann-note highlight">Return zero value for string ("") and a descriptive error. We never return a meaningful value alongside an error.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    }</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="kw">return</span> <span class="pk">fmt</span>.<span class="fn">Sprintf</span>(<span class="str">"Score %d accepted!"</span>, score), <span class="kw">nil</span></div>
+      <div class="ann-note highlight">Happy path: return the real value and <code>nil</code> for the error. <code>nil</code> means "everything is fine."</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">}</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> <span class="fn">main</span>() {</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    msg, err := <span class="fn">processScore</span>(<span class="num">150</span>)</div>
+      <div class="ann-note highlight">Capture BOTH return values. Always. Even if you don't expect an error.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="kw">if</span> err != <span class="kw">nil</span> {</div>
+      <div class="ann-note highlight">The canonical error check. <code>!= nil</code> means "an error occurred." Handle it here, immediately.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">        <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Error:"</span>, err)</div>
+      <div class="ann-note">Log, return, or handle the error. Don't silently ignore it.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">        <span class="kw">return</span></div>
+      <div class="ann-note warn">Return early. Don't let the code continue with a bad state — this is the "early return" pattern.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    }</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="pk">fmt</span>.<span class="fn">Println</span>(msg)  <span class="cm">// safe to use here</span></div>
+      <div class="ann-note highlight">By this line, you KNOW err is nil. msg is guaranteed to be valid. No defensive checks needed.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">}</div>
+      <div class="ann-note"> </div>
+    </div>
+  </div>
+
+  <div class="callout callout-fun">
+    <span class="callout-icon">😅</span>
+    <div class="callout-body">
+      <strong>Yes, you'll type "if err != nil" a lot</strong>
+      <p>It's the most common complaint from Go newcomers. But here's the thing — every one of those checks is an explicit decision you made about what to do when something goes wrong. In try/catch languages, half of those decisions get silently skipped. Your 3am debugging sessions will be much shorter in Go.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §5 VARIADIC FUNCTIONS -->
+  <h2><span class="section-num">§5</span> Variadic Functions — Accept Any Number of Arguments</h2>
+
+  <p>
+    A variadic function accepts a variable number of arguments of the same type.
+    You've already been using one: <code>fmt.Println</code> accepts any number of arguments.
+    Here's how to write your own:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">variadic functions</span></div>
+    <pre><span class="cm">// The ... before the type makes it variadic</span>
+<span class="kw">func</span> <span class="fn">sum</span>(numbers ...<span class="kw">int</span>) <span class="kw">int</span> {
+    total := <span class="num">0</span>
+    <span class="kw">for</span> _, n := <span class="kw">range</span> numbers {
+        total += n
+    }
+    <span class="kw">return</span> total
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="fn">sum</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>))           <span class="cm">// 6</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="fn">sum</span>(<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>))    <span class="cm">// 100</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="fn">sum</span>())                  <span class="cm">// 0 — zero args is valid</span>
+
+    <span class="cm">// You can also spread a slice into a variadic function with ...</span>
+    scores := []<span class="kw">int</span>{<span class="num">88</span>, <span class="num">92</span>, <span class="num">76</span>, <span class="num">95</span>}
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="fn">sum</span>(scores...))         <span class="cm">// 351</span>
+}</pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §6 FIRST-CLASS FUNCTIONS -->
+  <h2><span class="section-num">§6</span> Functions Are First-Class Citizens</h2>
+
+  <p>
+    In Go, functions are values. You can assign them to variables, pass them as
+    arguments, and return them from other functions. This unlocks powerful patterns
+    like callbacks and function factories.
+  </p>
+
+  <h3>Functions as Variables</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">functions as values</span></div>
+    <pre><span class="kw">func</span> <span class="fn">add</span>(a, b <span class="kw">int</span>) <span class="kw">int</span>      { <span class="kw">return</span> a + b }
+<span class="kw">func</span> <span class="fn">multiply</span>(a, b <span class="kw">int</span>) <span class="kw">int</span> { <span class="kw">return</span> a * b }
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="cm">// Assign a function to a variable</span>
+    operation := add
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="fn">operation</span>(<span class="num">3</span>, <span class="num">4</span>))  <span class="cm">// 7</span>
+
+    operation = multiply
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="fn">operation</span>(<span class="num">3</span>, <span class="num">4</span>))  <span class="cm">// 12</span>
+}</pre>
+  </div>
+
+  <h3>Anonymous Functions & Closures</h3>
+  <p>
+    You can define a function inline without giving it a name. These are called
+    <strong>anonymous functions</strong>. When an anonymous function references
+    variables from its surrounding scope, it becomes a <strong>closure</strong>:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">anonymous functions and closures</span></div>
+    <pre><span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="cm">// Anonymous function — defined and called immediately</span>
+    result := <span class="kw">func</span>(x, y <span class="kw">int</span>) <span class="kw">int</span> {
+        <span class="kw">return</span> x + y
+    }(<span class="num">10</span>, <span class="num">20</span>)
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(result)  <span class="cm">// 30</span>
+
+    <span class="cm">// Closure — captures 'base' from outer scope</span>
+    base := <span class="num">100</span>
+    addToBase := <span class="kw">func</span>(n <span class="kw">int</span>) <span class="kw">int</span> {
+        <span class="kw">return</span> base + n  <span class="cm">// 'base' is captured from main()</span>
+    }
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="fn">addToBase</span>(<span class="num">5</span>))   <span class="cm">// 105</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="fn">addToBase</span>(<span class="num">20</span>))  <span class="cm">// 120</span>
+}</pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-body">
+      <strong>You already used closures in M04</strong>
+      <p>In the goroutine example from M01 (and our concurrent scraper in Day 2), we'll use anonymous functions with <code>go func() &#123; ... &#125;()</code>. That's exactly this pattern. Closures and goroutines are best friends in Go.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §7 PUTTING IT ALL TOGETHER -->
+  <h2><span class="section-num">§7</span> Putting It All Together</h2>
+
+  <p>
+    Let's write a real utility package — a mini calculator with proper error handling.
+    This uses everything from this module: functions, multiple returns, named returns,
+    error handling, and variadic functions.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">calculator.go — type this out and run it</span></div>
+    <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"errors"</span>
+    <span class="str">"fmt"</span>
+)
+
+<span class="cm">// Sentinel error — a package-level named error</span>
+<span class="kw">var</span> ErrDivisionByZero = errors.<span class="fn">New</span>(<span class="str">"cannot divide by zero"</span>)
+
+<span class="cm">// Basic arithmetic — multiple return values</span>
+<span class="kw">func</span> <span class="fn">divide</span>(a, b <span class="kw">float64</span>) (<span class="kw">float64</span>, <span class="kw">error</span>) {
+    <span class="kw">if</span> b == <span class="num">0</span> {
+        <span class="kw">return</span> <span class="num">0</span>, ErrDivisionByZero
+    }
+    <span class="kw">return</span> a / b, <span class="kw">nil</span>
+}
+
+<span class="cm">// Variadic sum — accepts any number of ints</span>
+<span class="kw">func</span> <span class="fn">sumAll</span>(nums ...<span class="kw">int</span>) <span class="kw">int</span> {
+    total := <span class="num">0</span>
+    <span class="kw">for</span> _, n := <span class="kw">range</span> nums {
+        total += n
+    }
+    <span class="kw">return</span> total
+}
+
+<span class="cm">// Named returns — documents what we're returning</span>
+<span class="kw">func</span> <span class="fn">minMax</span>(nums []<span class="kw">int</span>) (min <span class="kw">int</span>, max <span class="kw">int</span>, err <span class="kw">error</span>) {
+    <span class="kw">if</span> len(nums) == <span class="num">0</span> {
+        err = errors.<span class="fn">New</span>(<span class="str">"cannot find min/max of empty slice"</span>)
+        <span class="kw">return</span>  <span class="cm">// naked return: returns zero, zero, err</span>
+    }
+    min, max = nums[<span class="num">0</span>], nums[<span class="num">0</span>]
+    <span class="kw">for</span> _, n := <span class="kw">range</span> nums[<span class="num">1</span>:] {
+        <span class="kw">if</span> n < min { min = n }
+        <span class="kw">if</span> n > max { max = n }
+    }
+    <span class="kw">return</span>  <span class="cm">// naked return: returns min, max, nil</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="cm">// Test divide</span>
+    result, err := <span class="fn">divide</span>(<span class="num">10</span>, <span class="num">3</span>)
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Divide error:"</span>, err)
+    } <span class="kw">else</span> {
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"10 / 3 = %.4f\n"</span>, result)
+    }
+
+    <span class="cm">// Test divide by zero</span>
+    _, err = <span class="fn">divide</span>(<span class="num">5</span>, <span class="num">0</span>)
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Caught error:"</span>, err)
+    }
+
+    <span class="cm">// Test variadic sum</span>
+    total := <span class="fn">sumAll</span>(<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>)
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Sum of all: %d\n"</span>, total)
+
+    <span class="cm">// Test minMax</span>
+    scores := []<span class="kw">int</span>{<span class="num">88</span>, <span class="num">42</span>, <span class="num">95</span>, <span class="num">67</span>, <span class="num">73</span>}
+    min, max, err := <span class="fn">minMax</span>(scores)
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"MinMax error:"</span>, err)
+    } <span class="kw">else</span> {
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Min: %d, Max: %d\n"</span>, min, max)
+    }
+}</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">terminal</span><span class="code-label">expected output</span></div>
+    <pre><span class="out">10 / 3 = 3.3333
+Caught error: cannot divide by zero
+Sum of all: 150
+Min: 42, Max: 95</span></pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- EXERCISE -->
+  <div class="exercise">
+    <h4>🛠 Try It Yourself</h4>
+    <p>
+      Write a function called <code>safeSqrt</code> that takes a <code>float64</code>
+      and returns its square root plus an <code>error</code>.
+      If the input is negative, return an error: <code>"cannot take square root of negative number: X"</code>.
+      Otherwise, return the result and <code>nil</code>.
+    </p>
+    <p>
+      <strong>Bonus:</strong> Use <code>math.Sqrt</code> from the <code>math</code> package
+      for the actual calculation. Remember to import it!
+      Test it with <code>safeSqrt(16)</code>, <code>safeSqrt(2)</code>, and <code>safeSqrt(-5)</code>.
+    </p>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- CHECKPOINT -->
+  <div class="checkpoint">
+    <h4>✅ Module 05 Checkpoint</h4>
+    <ul>
+      <li>You can write functions with parameters, return types, and the same-type shorthand</li>
+      <li>You understand multiple return values and use them confidently</li>
+      <li>You know named return values and when (not) to use naked returns</li>
+      <li>You understand Go's error philosophy: errors are values, not exceptions</li>
+      <li>You can create errors with <code>errors.New()</code> and <code>fmt.Errorf()</code></li>
+      <li>You know the canonical <code>val, err := f(); if err != nil</code> pattern by heart</li>
+      <li>You can write variadic functions with <code>...</code></li>
+      <li>You understand that functions are first-class values in Go</li>
+      <li>You can write anonymous functions and understand closures</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-fun">
+    <span class="callout-icon">🔨</span>
+    <div class="callout-body">
+      <strong>Anas's Note</strong>
+      <p>You just completed the hardest conceptual shift in Go: accepting that explicit error handling is a feature, not a chore. Every senior Go dev you'll ever meet has been through this exact moment. Welcome to the other side. Next up: the data structures that make Go programs sing — Arrays, Slices &amp; Maps. 🐹</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="prev-btn" href="m04.html">← M04: Control Flow</a>
+  <a class="next-btn" href="m06.html">Next: M06 — Arrays, Slices &amp; Maps →</a>
+</div>
+
+</body>
+</html>
