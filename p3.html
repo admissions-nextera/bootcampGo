@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🏆 Capstone — URL Shortener API | Gopher's Forge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --go-blue: #00ACD7;
+    --go-teal: #00D7A0;
+    --amber: #F5A623;
+    --red: #FF6B6B;
+    --purple: #B48EF7;
+    --gold: #FFD700;
+    --text: #e8ecf5;
+    --muted: #7a859e;
+    --body-max: 760px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Lora', serif; font-size: 18px; line-height: 1.8; }
+
+  /* ── HERO GRADIENT TOP ── */
+  .hero-stripe {
+    height: 4px;
+    background: linear-gradient(90deg, var(--go-blue), var(--go-teal), var(--purple), var(--gold));
+  }
+
+  .topnav { display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(13,15,20,0.95); backdrop-filter: blur(12px); z-index: 100; }
+  .topnav .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--text); }
+  .topnav .brand span { color: var(--go-blue); }
+  .module-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 14px; background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(180,142,247,0.15)); border: 1px solid rgba(255,215,0,0.35); border-radius: 999px; color: var(--gold); }
+  .time-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ── HEADER ── */
+  .lesson-header { max-width: var(--body-max); margin: 0 auto; padding: 72px 24px 48px; }
+  .lesson-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gold); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+  .lesson-title { font-family: 'Syne', sans-serif; font-size: clamp(36px, 6vw, 60px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 20px; }
+  .lesson-title .accent { background: linear-gradient(135deg, var(--go-blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .lesson-intro { font-size: 20px; color: var(--muted); line-height: 1.7; font-style: italic; border-left: 3px solid var(--gold); padding-left: 20px; margin-top: 28px; }
+  .lesson-meta { display: flex; gap: 24px; margin-top: 32px; flex-wrap: wrap; }
+  .meta-item { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted); }
+  .meta-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+
+  .lesson-body { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  h2 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin-top: 56px; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; gap: 12px; }
+  h2 .section-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--purple); background: rgba(180,142,247,0.1); border: 1px solid rgba(180,142,247,0.2); border-radius: 6px; padding: 3px 9px; font-weight: 400; }
+  h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-top: 40px; margin-bottom: 12px; color: var(--text); }
+  p { margin-bottom: 20px; }
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--go-teal); font-style: italic; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: rgba(0,172,215,0.1); color: var(--go-blue); padding: 2px 7px; border-radius: 5px; }
+
+  /* ── CALLOUTS ── */
+  .callout { border-radius: 12px; padding: 20px 24px; margin: 32px 0; display: flex; gap: 16px; align-items: flex-start; }
+  .callout-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; font-family: 'Syne', sans-serif; font-size: 15px; margin-bottom: 6px; }
+  .callout-body p { margin: 0; font-size: 15px; line-height: 1.7; }
+  .callout-info   { background: rgba(0,172,215,0.07);  border: 1px solid rgba(0,172,215,0.2); }
+  .callout-info .callout-body p, .callout-info .callout-body strong { color: var(--go-blue); }
+  .callout-tip    { background: rgba(0,215,160,0.07);  border: 1px solid rgba(0,215,160,0.2); }
+  .callout-tip .callout-body p, .callout-tip .callout-body strong { color: var(--go-teal); }
+  .callout-fun    { background: rgba(245,166,35,0.07); border: 1px solid rgba(245,166,35,0.2); }
+  .callout-fun .callout-body p, .callout-fun .callout-body strong { color: var(--amber); }
+  .callout-gold   { background: rgba(255,215,0,0.06);  border: 1px solid rgba(255,215,0,0.25); }
+  .callout-gold .callout-body p, .callout-gold .callout-body strong { color: var(--gold); }
+  .callout-purple { background: rgba(180,142,247,0.07); border: 1px solid rgba(180,142,247,0.25); }
+  .callout-purple .callout-body p, .callout-purple .callout-body strong { color: var(--purple); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 28px 0; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); flex-wrap: wrap; gap: 8px; }
+  .code-lang  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--go-blue); letter-spacing: 0.1em; text-transform: uppercase; }
+  .code-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  .code-step  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--purple); background: rgba(180,142,247,0.1); padding: 2px 10px; border-radius: 999px; }
+  pre { padding: 24px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.7; }
+  .kw  { color: #569cd6; }
+  .fn  { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .cm  { color: #6a9955; font-style: italic; }
+  .pk  { color: #4ec9b0; }
+  .num { color: #b5cea8; }
+  .out { color: var(--muted); }
+  .prompt { color: var(--go-teal); user-select: none; }
+
+  /* ── ANNOTATED CODE ── */
+  .annotated-code { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 28px 0; width: min(960px, 92vw); margin-left: 50%; transform: translateX(-50%); }
+  .ann-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .ann-header span { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .ann-header .lang { color: var(--go-blue); text-transform: uppercase; letter-spacing: 0.1em; }
+  .ann-header .fname { color: var(--muted); }
+  .ann-line { display: grid; grid-template-columns: 1fr 320px; border-bottom: 1px solid rgba(37,42,56,0.5); }
+  .ann-line:last-child { border-bottom: none; }
+  .ann-code { padding: 12px 24px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.6; border-right: 1px solid var(--border); white-space: pre; overflow-x: auto; }
+  .ann-note { padding: 12px 18px; font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.55; display: flex; align-items: center; background: rgba(255,255,255,0.015); word-break: break-word; }
+  .ann-note.highlight { color: var(--go-teal); background: rgba(0,215,160,0.04); }
+  .ann-note.warn      { color: var(--amber);   background: rgba(245,166,35,0.04); }
+  .ann-note.info      { color: var(--go-blue);  background: rgba(0,172,215,0.04); }
+  .ann-note.purple    { color: var(--purple);   background: rgba(180,142,247,0.04); }
+
+  /* ── FILE TREE ── */
+  .file-tree { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 28px 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 2; }
+  .ft-root  { color: var(--go-blue); font-weight: 700; }
+  .ft-dir   { color: var(--amber); }
+  .ft-go    { color: var(--go-teal); }
+  .ft-mod   { color: var(--purple); }
+  .ft-note  { color: var(--muted); font-style: italic; font-size: 12px; }
+  .ft-indent1 { padding-left: 20px; }
+  .ft-indent2 { padding-left: 40px; }
+
+  /* ── ROUTE TABLE ── */
+  .route-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+  .route-table th { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 18px; text-align: left; background: var(--surface2); border: 1px solid var(--border); color: var(--purple); }
+  .route-table td { padding: 10px 18px; border: 1px solid var(--border); vertical-align: middle; line-height: 1.5; font-size: 14px; }
+  .route-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  .method-badge { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 5px; min-width: 60px; text-align: center; }
+  .method-get    { background: rgba(61,220,132,0.15);  color: #3DDC84;          border: 1px solid rgba(61,220,132,0.3); }
+  .method-post   { background: rgba(245,166,35,0.15);  color: var(--amber);     border: 1px solid rgba(245,166,35,0.3); }
+  .method-delete { background: rgba(255,107,107,0.15); color: var(--red);       border: 1px solid rgba(255,107,107,0.3); }
+  .route-path { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--go-teal); }
+  .route-desc { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); }
+
+  /* ── DEMO TERMINAL ── */
+  .demo-terminal { background: #0a0c10; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin: 28px 0; }
+  .terminal-bar { padding: 12px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .t-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .t-dot.red    { background: #FF5F57; }
+  .t-dot.yellow { background: #FEBC2E; }
+  .t-dot.green  { background: #28C840; }
+  .terminal-bar span { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); margin-left: 8px; }
+  .terminal-body { padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.9; }
+  .t-prompt { color: var(--go-teal); }
+  .t-cmd    { color: var(--text); }
+  .t-ok     { color: var(--go-teal); }
+  .t-json   { color: var(--muted); }
+  .t-key    { color: var(--go-blue); }
+  .t-str    { color: #ce9178; }
+  .t-num    { color: #b5cea8; }
+  .t-redirect { color: var(--purple); }
+  .t-dim    { color: #3a4055; }
+
+  /* ── CONCEPT PILLS ── */
+  .concept-pills { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0; }
+  .pill { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 6px 14px; border-radius: 999px; }
+  .pill-blue   { background: rgba(0,172,215,0.12);  color: var(--go-blue);  border: 1px solid rgba(0,172,215,0.25); }
+  .pill-teal   { background: rgba(0,215,160,0.12);  color: var(--go-teal);  border: 1px solid rgba(0,215,160,0.25); }
+  .pill-amber  { background: rgba(245,166,35,0.12); color: var(--amber);    border: 1px solid rgba(245,166,35,0.25); }
+  .pill-purple { background: rgba(180,142,247,0.12); color: var(--purple);  border: 1px solid rgba(180,142,247,0.25); }
+  .pill-red    { background: rgba(255,107,107,0.12); color: var(--red);     border: 1px solid rgba(255,107,107,0.25); }
+
+  /* ── BUILD PHASE HEADER ── */
+  .phase-header { background: linear-gradient(135deg, rgba(180,142,247,0.08), rgba(0,172,215,0.06)); border: 1px solid rgba(180,142,247,0.25); border-radius: 14px; padding: 20px 24px; margin: 40px 0 24px; display: flex; align-items: center; gap: 16px; }
+  .phase-num { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; color: var(--purple); line-height: 1; min-width: 48px; }
+  .phase-info h4 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .phase-info p  { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); margin: 0; line-height: 1.4; }
+
+  /* ── GRADUATION CARD ── */
+  .graduation {
+    background: linear-gradient(135deg, rgba(255,215,0,0.06), rgba(180,142,247,0.06), rgba(0,215,160,0.06));
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 20px;
+    padding: 40px;
+    margin: 48px 0;
+    text-align: center;
+  }
+  .graduation .grad-icon { font-size: 64px; margin-bottom: 20px; line-height: 1; }
+  .graduation h3 { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 12px; background: linear-gradient(135deg, var(--gold), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .graduation .tagline { font-family: 'Lora', serif; font-size: 18px; color: var(--muted); font-style: italic; margin-bottom: 28px; max-width: 500px; margin-left: auto; margin-right: auto; }
+  .skill-pills { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 24px 0; }
+  .skill-pill { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 6px 16px; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text); }
+  .graduation .sign-off { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--go-teal); margin-top: 24px; }
+
+  /* ── WHAT'S NEXT ── */
+  .whats-next { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 28px 0; }
+  .next-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .next-card h5 { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .next-card p  { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; }
+  .next-card .tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--go-blue); margin-bottom: 8px; display: block; }
+
+  /* ── CHECKPOINT ── */
+  .checkpoint { background: rgba(255,215,0,0.05); border: 1px solid rgba(255,215,0,0.25); border-radius: 12px; padding: 24px 28px; margin: 40px 0; }
+  .checkpoint h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--gold); margin-bottom: 12px; }
+  .checkpoint ul { list-style: none; padding: 0; }
+  .checkpoint ul li { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); padding: 6px 0; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+  .checkpoint ul li::before { content: '✓'; color: var(--gold); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  .bottom-nav { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; display: flex; justify-content: space-between; }
+  .prev-btn, .next-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; text-decoration: none; transition: opacity 0.2s; }
+  .prev-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .next-btn { background: linear-gradient(135deg, var(--go-blue), var(--purple)); color: #fff; }
+  .prev-btn:hover, .next-btn:hover { opacity: 0.85; }
+
+  @media (max-width: 700px) {
+    .topnav { padding: 16px 20px; }
+    .lesson-header, .lesson-body { padding-left: 20px; padding-right: 20px; }
+    .whats-next { grid-template-columns: 1fr; }
+    .ann-note { display: none; }
+    .ann-line { grid-template-columns: 1fr; }
+    .ann-code { border-right: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero-stripe"></div>
+
+<nav class="topnav">
+  <div class="brand">Gopher's <span>Forge</span></div>
+  <span class="module-badge">🏆 CAPSTONE</span>
+  <span class="time-badge">⏱ 1.5 hours</span>
+</nav>
+
+<header class="lesson-header">
+  <div class="lesson-eyebrow">Day 2 · Grand Finale · Graduation Project</div>
+  <h1 class="lesson-title"><span class="accent">URL Shortener</span><br/>API</h1>
+  <p class="lesson-intro">
+    This is it. Every single concept from the weekend — structs, interfaces, 
+    goroutines, channels, packages, HTTP, JSON, error handling — converges right
+    here. You're not following a tutorial anymore. You're building a real service
+    that real people use every day. Let's ship it. 🔨
+  </p>
+  <div class="lesson-meta">
+    <div class="meta-item"><span class="dot"></span> Day 2 — Grand Finale</div>
+    <div class="meta-item"><span class="dot"></span> 1.5 hours</div>
+    <div class="meta-item"><span class="dot"></span> Everything. All of it.</div>
+  </div>
+</header>
+
+<main class="lesson-body">
+
+  <hr class="divider"/>
+
+  <!-- §1 WHAT WE'RE BUILDING -->
+  <h2><span class="section-num">§1</span> What You're Building</h2>
+
+  <p>
+    A URL Shortener API. You give it a long URL, it gives you a short code like
+    <code>go.dev</code> → <code>localhost:8080/r/xK9mP2</code>. Visit the short URL and 
+    it redirects you. Track how many times each link was clicked. List all your links.
+    Delete ones you don't want. That's a real product.
+  </p>
+
+  <div class="concept-pills">
+    <span class="pill pill-blue">net/http</span>
+    <span class="pill pill-teal">encoding/json</span>
+    <span class="pill pill-purple">structs + methods</span>
+    <span class="pill pill-amber">sync.RWMutex</span>
+    <span class="pill pill-teal">math/rand</span>
+    <span class="pill pill-blue">routing</span>
+    <span class="pill pill-purple">middleware</span>
+    <span class="pill pill-red">error handling</span>
+    <span class="pill pill-amber">HTTP redirects</span>
+  </div>
+
+  <h3>API Endpoints</h3>
+  <table class="route-table">
+    <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="method-badge method-post">POST</span></td>
+        <td class="route-path">/api/shorten</td>
+        <td class="route-desc">Create a short link. Body: <code>{"url":"https://..."}</code></td>
+      </tr>
+      <tr>
+        <td><span class="method-badge method-get">GET</span></td>
+        <td class="route-path">/api/links</td>
+        <td class="route-desc">List all links with click counts</td>
+      </tr>
+      <tr>
+        <td><span class="method-badge method-get">GET</span></td>
+        <td class="route-path">/api/links/{code}</td>
+        <td class="route-desc">Get info about a specific short link</td>
+      </tr>
+      <tr>
+        <td><span class="method-badge method-delete">DELETE</span></td>
+        <td class="route-path">/api/links/{code}</td>
+        <td class="route-desc">Delete a short link</td>
+      </tr>
+      <tr>
+        <td><span class="method-badge method-get">GET</span></td>
+        <td class="route-path">/r/{code}</td>
+        <td class="route-desc">Redirect to original URL (increments click count)</td>
+      </tr>
+      <tr>
+        <td><span class="method-badge method-get">GET</span></td>
+        <td class="route-path">/health</td>
+        <td class="route-desc">Health check — always returns 200 OK</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="demo-terminal">
+    <div class="terminal-bar">
+      <div class="t-dot red"></div><div class="t-dot yellow"></div><div class="t-dot green"></div>
+      <span>the finished product in action</span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-prompt">$</span> <span class="t-cmd">curl -s -X POST localhost:8080/api/shorten \</span></div>
+      <div><span class="t-dim">         </span><span class="t-cmd">-d '{"url":"https://go.dev/doc/effective_go"}'</span></div>
+      <div><span class="t-json">{</span><span class="t-key">"code"</span><span class="t-json">:</span><span class="t-str">"xK9mP2"</span><span class="t-json">,</span><span class="t-key">"short_url"</span><span class="t-json">:</span><span class="t-str">"http://localhost:8080/r/xK9mP2"</span><span class="t-json">,</span><span class="t-key">"original_url"</span><span class="t-json">:</span><span class="t-str">"https://go.dev/doc/effective_go"</span><span class="t-json">}</span></div>
+      <br/>
+      <div><span class="t-prompt">$</span> <span class="t-cmd">curl -v localhost:8080/r/xK9mP2</span></div>
+      <div><span class="t-redirect">&lt; HTTP/1.1 302 Found</span></div>
+      <div><span class="t-redirect">&lt; Location: https://go.dev/doc/effective_go</span></div>
+      <br/>
+      <div><span class="t-prompt">$</span> <span class="t-cmd">curl -s localhost:8080/api/links/xK9mP2</span></div>
+      <div><span class="t-json">{</span><span class="t-key">"code"</span><span class="t-json">:</span><span class="t-str">"xK9mP2"</span><span class="t-json">,</span><span class="t-key">"clicks"</span><span class="t-json">:</span><span class="t-num">1</span><span class="t-json">,</span><span class="t-key">"original_url"</span><span class="t-json">:</span><span class="t-str">"https://go.dev/doc/effective_go"</span><span class="t-json">}</span></div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §2 SETUP -->
+  <h2><span class="section-num">§2</span> Project Setup</h2>
+
+  <div class="file-tree">
+    <div><span class="ft-root">url-shortener/</span></div>
+    <div class="ft-indent1"><span class="ft-mod">go.mod</span></div>
+    <div class="ft-indent1"><span class="ft-go">main.go</span>      <span class="ft-note">← server entry point, routes</span></div>
+    <div class="ft-indent1"><span class="ft-go">store.go</span>     <span class="ft-note">← in-memory Link store with mutex</span></div>
+    <div class="ft-indent1"><span class="ft-go">handlers.go</span>  <span class="ft-note">← all HTTP handlers</span></div>
+    <div class="ft-indent1"><span class="ft-go">middleware.go</span> <span class="ft-note">← logging + CORS middleware</span></div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">terminal</span></div>
+    <pre><span class="prompt">$</span> mkdir url-shortener && cd url-shortener
+<span class="prompt">$</span> go mod init url-shortener
+<span class="prompt">$</span> touch main.go store.go handlers.go middleware.go</pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §3 BUILD -->
+  <h2><span class="section-num">§3</span> Build It — Four Files, One Real Service</h2>
+
+  <!-- PHASE 1: store.go -->
+  <div class="phase-header">
+    <div class="phase-num">01</div>
+    <div class="phase-info">
+      <h4>store.go — The Data Layer</h4>
+      <p>The Link type, the Store struct, and all operations on it. Thread-safe with RWMutex.</p>
+    </div>
+  </div>
+
+  <div class="annotated-code">
+    <div class="ann-header">
+      <span class="lang">Go</span>
+      <span class="fname">store.go — annotated</span>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">package</span> main</div>
+      <div class="ann-note">Single package — all files in the project share package main.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">import</span> (
+    <span class="str">"errors"</span>
+    <span class="str">"math/rand"</span>
+    <span class="str">"sync"</span>
+    <span class="str">"time"</span>
+)</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">var</span> ErrNotFound = errors.<span class="fn">New</span>(<span class="str">"link not found"</span>)</div>
+      <div class="ann-note highlight">Exported sentinel error. Handlers check <code>errors.Is(err, ErrNotFound)</code> to decide which HTTP status to return.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">type</span> Link <span class="kw">struct</span> {
+    Code        <span class="kw">string</span>    <span class="str">`json:"code"`</span>
+    OriginalURL <span class="kw">string</span>    <span class="str">`json:"original_url"`</span>
+    ShortURL    <span class="kw">string</span>    <span class="str">`json:"short_url"`</span>
+    Clicks      <span class="kw">int</span>       <span class="str">`json:"clicks"`</span>
+    CreatedAt   time.Time <span class="str">`json:"created_at"`</span>
+}</div>
+      <div class="ann-note highlight">Our core domain type. Every field is exported and tagged for clean JSON output.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">type</span> Store <span class="kw">struct</span> {
+    mu    sync.RWMutex
+    links <span class="kw">map</span>[<span class="kw">string</span>]Link
+}</div>
+      <div class="ann-note highlight">Store wraps the map + mutex together. Unexported fields — nobody outside the package can touch them directly. This is encapsulation the Go way.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> <span class="fn">NewStore</span>() *Store {
+    <span class="kw">return</span> &amp;Store{links: <span class="fn">make</span>(<span class="kw">map</span>[<span class="kw">string</span>]Link)}
+}</div>
+      <div class="ann-note highlight">Constructor function — the Go convention for types that need initialization. Always return a pointer to a struct you want to share across handlers.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> (s *Store) <span class="fn">Save</span>(originalURL, baseURL <span class="kw">string</span>) Link {
+    code := <span class="fn">generateCode</span>(<span class="num">6</span>)
+    link := Link{
+        Code:        code,
+        OriginalURL: originalURL,
+        ShortURL:    baseURL + <span class="str">"/r/"</span> + code,
+        CreatedAt:   time.<span class="fn">Now</span>(),
+    }
+    s.mu.<span class="fn">Lock</span>()
+    s.links[code] = link
+    s.mu.<span class="fn">Unlock</span>()
+    <span class="kw">return</span> link
+}</div>
+      <div class="ann-note highlight">Pointer receiver — modifies the Store's data. Lock for writes, unlock immediately after. We return the link so the handler can respond with it.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> (s *Store) <span class="fn">Get</span>(code <span class="kw">string</span>) (Link, <span class="kw">error</span>) {
+    s.mu.<span class="fn">RLock</span>()
+    l, ok := s.links[code]
+    s.mu.<span class="fn">RUnlock</span>()
+    <span class="kw">if</span> !ok { <span class="kw">return</span> Link{}, ErrNotFound }
+    <span class="kw">return</span> l, <span class="kw">nil</span>
+}</div>
+      <div class="ann-note highlight">RLock for reads — multiple goroutines can read simultaneously. Only writes need exclusive Lock.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> (s *Store) <span class="fn">IncrClick</span>(code <span class="kw">string</span>) {
+    s.mu.<span class="fn">Lock</span>()
+    <span class="kw">defer</span> s.mu.<span class="fn">Unlock</span>()
+    <span class="kw">if</span> l, ok := s.links[code]; ok {
+        l.Clicks++
+        s.links[code] = l
+    }
+}</div>
+      <div class="ann-note highlight">Maps store copies of structs — you must read, modify, and write back. This is a write operation (incrementing), so it needs a full Lock.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> (s *Store) <span class="fn">List</span>() []Link {
+    s.mu.<span class="fn">RLock</span>()
+    <span class="kw">defer</span> s.mu.<span class="fn">RUnlock</span>()
+    links := <span class="fn">make</span>([]Link, <span class="num">0</span>, len(s.links))
+    <span class="kw">for</span> _, l := <span class="kw">range</span> s.links {
+        links = <span class="fn">append</span>(links, l)
+    }
+    <span class="kw">return</span> links
+}</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> (s *Store) <span class="fn">Delete</span>(code <span class="kw">string</span>) <span class="kw">error</span> {
+    s.mu.<span class="fn">Lock</span>()
+    <span class="kw">defer</span> s.mu.<span class="fn">Unlock</span>()
+    <span class="kw">if</span> _, ok := s.links[code]; !ok {
+        <span class="kw">return</span> ErrNotFound
+    }
+    <span class="kw">delete</span>(s.links, code)
+    <span class="kw">return</span> <span class="kw">nil</span>
+}</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div><div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="cm">// generateCode returns a random alphanumeric string of length n</span>
+<span class="kw">const</span> charset = <span class="str">"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"</span>
+
+<span class="kw">func</span> <span class="fn">generateCode</span>(n <span class="kw">int</span>) <span class="kw">string</span> {
+    b := <span class="fn">make</span>([]<span class="kw">byte</span>, n)
+    <span class="kw">for</span> i := <span class="kw">range</span> b {
+        b[i] = charset[rand.<span class="fn">Intn</span>(len(charset))]
+    }
+    <span class="kw">return</span> <span class="kw">string</span>(b)
+}</div>
+      <div class="ann-note highlight">6-char alphanumeric = 62⁶ = ~56 billion possible codes. More than enough for an in-memory store. Lowercase function = unexported helper.</div>
+    </div>
+  </div>
+
+  <!-- PHASE 2: handlers.go -->
+  <div class="phase-header">
+    <div class="phase-num">02</div>
+    <div class="phase-info">
+      <h4>handlers.go — The HTTP Layer</h4>
+      <p>All request handlers. Each one does one job: parse → validate → store → respond.</p>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Go</span>
+      <span class="code-label">handlers.go — complete</span>
+    </div>
+    <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"encoding/json"</span>
+    <span class="str">"errors"</span>
+    <span class="str">"net/http"</span>
+    <span class="str">"strings"</span>
+)
+
+<span class="cm">// Handler holds the store — dependency injection via struct</span>
+<span class="kw">type</span> Handler <span class="kw">struct</span> {
+    store *Store
+}
+
+<span class="kw">func</span> <span class="fn">NewHandler</span>(s *Store) *Handler {
+    <span class="kw">return</span> &amp;Handler{store: s}
+}
+
+<span class="cm">// writeJSON sets Content-Type and encodes the response</span>
+<span class="kw">func</span> <span class="fn">writeJSON</span>(w http.ResponseWriter, status <span class="kw">int</span>, v <span class="kw">any</span>) {
+    w.Header().<span class="fn">Set</span>(<span class="str">"Content-Type"</span>, <span class="str">"application/json"</span>)
+    w.<span class="fn">WriteHeader</span>(status)
+    <span class="kw">if</span> v != <span class="kw">nil</span> {
+        json.<span class="fn">NewEncoder</span>(w).<span class="fn">Encode</span>(v)
+    }
+}
+
+<span class="kw">func</span> <span class="fn">writeError</span>(w http.ResponseWriter, status <span class="kw">int</span>, msg <span class="kw">string</span>) {
+    <span class="fn">writeJSON</span>(w, status, <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">string</span>{<span class="str">"error"</span>: msg})
+}
+
+<span class="cm">// POST /api/shorten</span>
+<span class="kw">func</span> (h *Handler) <span class="fn">Shorten</span>(w http.ResponseWriter, r *http.Request) {
+    <span class="kw">var</span> req <span class="kw">struct</span> {
+        URL <span class="kw">string</span> <span class="str">`json:"url"`</span>
+    }
+    <span class="kw">if</span> err := json.<span class="fn">NewDecoder</span>(r.Body).<span class="fn">Decode</span>(&amp;req); err != <span class="kw">nil</span> {
+        <span class="fn">writeError</span>(w, http.StatusBadRequest, <span class="str">"invalid JSON"</span>)
+        <span class="kw">return</span>
+    }
+    <span class="kw">if</span> req.URL == <span class="str">""</span> || !strings.<span class="fn">HasPrefix</span>(req.URL, <span class="str">"http"</span>) {
+        <span class="fn">writeError</span>(w, http.StatusBadRequest, <span class="str">"url is required and must start with http"</span>)
+        <span class="kw">return</span>
+    }
+
+    baseURL := <span class="str">"http://"</span> + r.Host
+    link := h.store.<span class="fn">Save</span>(req.URL, baseURL)
+    <span class="fn">writeJSON</span>(w, http.StatusCreated, link)
+}
+
+<span class="cm">// GET /api/links</span>
+<span class="kw">func</span> (h *Handler) <span class="fn">ListLinks</span>(w http.ResponseWriter, r *http.Request) {
+    <span class="fn">writeJSON</span>(w, http.StatusOK, h.store.<span class="fn">List</span>())
+}
+
+<span class="cm">// GET /api/links/{code}</span>
+<span class="kw">func</span> (h *Handler) <span class="fn">GetLink</span>(w http.ResponseWriter, r *http.Request) {
+    code := r.<span class="fn">PathValue</span>(<span class="str">"code"</span>)
+    link, err := h.store.<span class="fn">Get</span>(code)
+    <span class="kw">if</span> errors.<span class="fn">Is</span>(err, ErrNotFound) {
+        <span class="fn">writeError</span>(w, http.StatusNotFound, <span class="str">"link not found"</span>)
+        <span class="kw">return</span>
+    }
+    <span class="fn">writeJSON</span>(w, http.StatusOK, link)
+}
+
+<span class="cm">// DELETE /api/links/{code}</span>
+<span class="kw">func</span> (h *Handler) <span class="fn">DeleteLink</span>(w http.ResponseWriter, r *http.Request) {
+    code := r.<span class="fn">PathValue</span>(<span class="str">"code"</span>)
+    err := h.store.<span class="fn">Delete</span>(code)
+    <span class="kw">if</span> errors.<span class="fn">Is</span>(err, ErrNotFound) {
+        <span class="fn">writeError</span>(w, http.StatusNotFound, <span class="str">"link not found"</span>)
+        <span class="kw">return</span>
+    }
+    <span class="fn">writeJSON</span>(w, http.StatusNoContent, <span class="kw">nil</span>)
+}
+
+<span class="cm">// GET /r/{code} — the redirect</span>
+<span class="kw">func</span> (h *Handler) <span class="fn">Redirect</span>(w http.ResponseWriter, r *http.Request) {
+    code := r.<span class="fn">PathValue</span>(<span class="str">"code"</span>)
+    link, err := h.store.<span class="fn">Get</span>(code)
+    <span class="kw">if</span> errors.<span class="fn">Is</span>(err, ErrNotFound) {
+        <span class="fn">writeError</span>(w, http.StatusNotFound, <span class="str">"short link not found"</span>)
+        <span class="kw">return</span>
+    }
+    h.store.<span class="fn">IncrClick</span>(code)
+    http.<span class="fn">Redirect</span>(w, r, link.OriginalURL, http.StatusFound)
+}
+
+<span class="cm">// GET /health</span>
+<span class="kw">func</span> <span class="fn">healthHandler</span>(w http.ResponseWriter, r *http.Request) {
+    <span class="fn">writeJSON</span>(w, http.StatusOK, <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">string</span>{<span class="str">"status"</span>: <span class="str">"ok"</span>})
+}</pre>
+  </div>
+
+  <!-- PHASE 3: middleware.go -->
+  <div class="phase-header">
+    <div class="phase-num">03</div>
+    <div class="phase-info">
+      <h4>middleware.go — Logging &amp; CORS</h4>
+      <p>Request logging with duration. CORS headers so a frontend can call this API.</p>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Go</span>
+      <span class="code-label">middleware.go — complete</span>
+    </div>
+    <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"fmt"</span>
+    <span class="str">"net/http"</span>
+    <span class="str">"time"</span>
+)
+
+<span class="cm">// responseWriter wraps http.ResponseWriter to capture the status code</span>
+<span class="kw">type</span> responseWriter <span class="kw">struct</span> {
+    http.ResponseWriter
+    status <span class="kw">int</span>
+}
+
+<span class="kw">func</span> (rw *responseWriter) <span class="fn">WriteHeader</span>(code <span class="kw">int</span>) {
+    rw.status = code
+    rw.ResponseWriter.<span class="fn">WriteHeader</span>(code)
+}
+
+<span class="cm">// LoggingMiddleware logs method, path, status, and duration for every request</span>
+<span class="kw">func</span> <span class="fn">LoggingMiddleware</span>(next http.Handler) http.Handler {
+    <span class="kw">return</span> http.<span class="fn">HandlerFunc</span>(<span class="kw">func</span>(w http.ResponseWriter, r *http.Request) {
+        start := time.<span class="fn">Now</span>()
+        rw := &amp;responseWriter{ResponseWriter: w, status: <span class="num">200</span>}
+        next.<span class="fn">ServeHTTP</span>(rw, r)
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"%s  %-7s %-35s → %d  (%dms)\n"</span>,
+            time.<span class="fn">Now</span>().<span class="fn">Format</span>(<span class="str">"15:04:05"</span>),
+            r.Method,
+            r.URL.Path,
+            rw.status,
+            time.<span class="fn">Since</span>(start).<span class="fn">Milliseconds</span>(),
+        )
+    })
+}
+
+<span class="cm">// CORSMiddleware adds headers so browser frontends can call this API</span>
+<span class="kw">func</span> <span class="fn">CORSMiddleware</span>(next http.Handler) http.Handler {
+    <span class="kw">return</span> http.<span class="fn">HandlerFunc</span>(<span class="kw">func</span>(w http.ResponseWriter, r *http.Request) {
+        w.Header().<span class="fn">Set</span>(<span class="str">"Access-Control-Allow-Origin"</span>, <span class="str">"*"</span>)
+        w.Header().<span class="fn">Set</span>(<span class="str">"Access-Control-Allow-Methods"</span>, <span class="str">"GET, POST, DELETE, OPTIONS"</span>)
+        w.Header().<span class="fn">Set</span>(<span class="str">"Access-Control-Allow-Headers"</span>, <span class="str">"Content-Type"</span>)
+        <span class="kw">if</span> r.Method == http.MethodOptions {
+            w.<span class="fn">WriteHeader</span>(http.StatusNoContent)
+            <span class="kw">return</span>
+        }
+        next.<span class="fn">ServeHTTP</span>(w, r)
+    })
+}</pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">🧠</span>
+    <div class="callout-body">
+      <strong>Why we wrap ResponseWriter</strong>
+      <p>The standard <code>http.ResponseWriter</code> gives you no way to read back the status code after writing it — it's write-only. The <code>responseWriter</code> wrapper intercepts <code>WriteHeader()</code> calls and stores the code, letting our logger report the actual HTTP status. This is a classic Go middleware pattern you'll see in every real codebase.</p>
+    </div>
+  </div>
+
+  <!-- PHASE 4: main.go -->
+  <div class="phase-header">
+    <div class="phase-num">04</div>
+    <div class="phase-info">
+      <h4>main.go — Wire It All Together</h4>
+      <p>Create the store, create the handler, register routes, chain middleware, start the server.</p>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Go</span>
+      <span class="code-label">main.go — complete</span>
+    </div>
+    <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"fmt"</span>
+    <span class="str">"log"</span>
+    <span class="str">"net/http"</span>
+)
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="cm">// Dependency injection — create store once, share via Handler</span>
+    store   := <span class="fn">NewStore</span>()
+    handler := <span class="fn">NewHandler</span>(store)
+    mux     := http.<span class="fn">NewServeMux</span>()
+
+    <span class="cm">// API routes</span>
+    mux.<span class="fn">HandleFunc</span>(<span class="str">"POST /api/shorten"</span>,         handler.Shorten)
+    mux.<span class="fn">HandleFunc</span>(<span class="str">"GET /api/links"</span>,             handler.ListLinks)
+    mux.<span class="fn">HandleFunc</span>(<span class="str">"GET /api/links/{code}"</span>,       handler.GetLink)
+    mux.<span class="fn">HandleFunc</span>(<span class="str">"DELETE /api/links/{code}"</span>,    handler.DeleteLink)
+
+    <span class="cm">// Redirect route</span>
+    mux.<span class="fn">HandleFunc</span>(<span class="str">"GET /r/{code}"</span>, handler.Redirect)
+
+    <span class="cm">// Health check</span>
+    mux.<span class="fn">HandleFunc</span>(<span class="str">"GET /health"</span>, healthHandler)
+
+    <span class="cm">// Chain middleware: request flows Logging → CORS → mux → handler</span>
+    app := <span class="fn">LoggingMiddleware</span>(<span class="fn">CORSMiddleware</span>(mux))
+
+    port := <span class="str">":8080"</span>
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"🔗 URL Shortener running on http://localhost%s\n"</span>, port)
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"   POST /api/shorten     → create short link"</span>)
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"   GET  /api/links       → list all links"</span>)
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"   GET  /r/{code}        → redirect"</span>)
+    <span class="pk">fmt</span>.<span class="fn">Println</span>()
+
+    <span class="kw">if</span> err := http.<span class="fn">ListenAndServe</span>(port, app); err != <span class="kw">nil</span> {
+        log.<span class="fn">Fatalf</span>(<span class="str">"server failed: %v"</span>, err)
+    }
+}</pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §4 RUN AND TEST -->
+  <h2><span class="section-num">§4</span> Run It &amp; Test Everything</h2>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">terminal</span></div>
+    <pre><span class="prompt">$</span> go run .</pre>
+  </div>
+
+  <div class="demo-terminal">
+    <div class="terminal-bar">
+      <div class="t-dot red"></div><div class="t-dot yellow"></div><div class="t-dot green"></div>
+      <span>full test suite — run these in order</span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-prompt">$</span> <span class="t-cmd">curl -s localhost:8080/health</span></div>
+      <div><span class="t-json">{</span><span class="t-key">"status"</span><span class="t-json">:</span><span class="t-str">"ok"</span><span class="t-json">}</span></div>
+      <br/>
+      <div><span class="t-prompt">$</span> <span class="t-cmd">curl -s -X POST localhost:8080/api/shorten \</span></div>
+      <div><span class="t-dim">         </span><span class="t-cmd">-H "Content-Type: application/json" \</span></div>
+      <div><span class="t-dim">         </span><span class="t-cmd">-d '{"url":"https://go.dev/doc/effective_go"}'</span></div>
+      <div><span class="t-json">{</span><span class="t-key">"code"</span><span class="t-json">:</span><span class="t-str">"xK9mP2"</span><span class="t-json">,</span><span class="t-key">"original_url"</span><span class="t-json">:</span><span class="t-str">"https://go.dev/doc/effective_go"</span><span class="t-json">,</span><span class="t-key">"short_url"</span><span class="t-json">:</span><span class="t-str">"http://localhost:8080/r/xK9mP2"</span><span class="t-json">,</span><span class="t-key">"clicks"</span><span class="t-json">:</span><span class="t-num">0</span><span class="t-json">}</span></div>
+      <br/>
+      <div><span class="t-prompt">$</span> <span class="t-cmd">curl -s localhost:8080/api/links</span></div>
+      <div><span class="t-json">[{</span><span class="t-key">"code"</span><span class="t-json">:</span><span class="t-str">"xK9mP2"</span><span class="t-json">,</span><span class="t-key">"clicks"</span><span class="t-json">:</span><span class="t-num">0</span><span class="t-json">,...}]</span></div>
+      <br/>
+      <div><span class="t-prompt">$</span> <span class="t-cmd">curl -v localhost:8080/r/xK9mP2 2>&amp;1 | grep Location</span></div>
+      <div><span class="t-redirect">&lt; Location: https://go.dev/doc/effective_go</span></div>
+      <br/>
+      <div><span class="t-prompt">$</span> <span class="t-cmd">curl -s localhost:8080/api/links/xK9mP2</span></div>
+      <div><span class="t-json">{</span><span class="t-key">"clicks"</span><span class="t-json">:</span><span class="t-num">1</span><span class="t-json">,...}</span>  <span class="out">← click was counted!</span></div>
+      <br/>
+      <div><span class="t-prompt">$</span> <span class="t-cmd">curl -s -X DELETE localhost:8080/api/links/xK9mP2</span></div>
+      <div><span class="t-ok">204 No Content ✓</span></div>
+    </div>
+  </div>
+
+  <div class="callout callout-gold">
+    <span class="callout-icon">🏆</span>
+    <div class="callout-body">
+      <strong>It works. You built it.</strong>
+      <p>A URL shortener with persistent state, concurrent safety, request logging, CORS headers, proper HTTP semantics, and clean error responses — in pure Go, zero dependencies, four files. This is production-quality application structure. The Forge is proud. 🐹</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §5 WHAT TO TACKLE NEXT -->
+  <h2><span class="section-num">§5</span> How to Keep Growing — Extension Challenges</h2>
+
+  <div class="callout callout-purple">
+    <span class="callout-icon">⚡</span>
+    <div class="callout-body">
+      <strong>Challenge 1 — Custom codes</strong>
+      <p>Let users pass <code>"custom_code": "mylink"</code> in the POST body. If the code is already taken, return 409 Conflict. If not provided, generate one as usual.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-purple">
+    <span class="callout-icon">⚡</span>
+    <div class="callout-body">
+      <strong>Challenge 2 — Expiry</strong>
+      <p>Add an <code>ExpiresAt *time.Time</code> field to <code>Link</code>. Accept an optional <code>"ttl_hours"</code> in the POST body. In the Redirect handler, check if the link has expired and return 410 Gone if so.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-purple">
+    <span class="callout-icon">⚡</span>
+    <div class="callout-body">
+      <strong>Challenge 3 — Persist to disk</strong>
+      <p>When the server starts, load existing links from a <code>links.json</code> file if it exists. On every write (Save, Delete), marshal the entire store and write it to <code>links.json</code>. Now your data survives restarts.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-purple">
+    <span class="callout-icon">🏆</span>
+    <div class="callout-body">
+      <strong>Challenge 4 — Write tests</strong>
+      <p>Create <code>store_test.go</code> and <code>handlers_test.go</code>. Use Go's built-in <code>testing</code> package and <code>net/http/httptest</code> to test your handlers without running a real server. This is how professional Go code is tested.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §6 WHAT YOU'VE LEARNED -->
+  <h2><span class="section-num">§6</span> Everything You Learned This Weekend</h2>
+
+  <div class="checkpoint">
+    <h4>🏆 Graduation Checklist</h4>
+    <ul>
+      <li>Go's philosophy, toolchain, module system, and workspace layout</li>
+      <li>Variables, types, constants, zero values, and type safety</li>
+      <li>Control flow — for loops, switch, defer — and how they compose</li>
+      <li>Functions, multiple returns, errors, variadic args, first-class functions, closures</li>
+      <li>Arrays, slices (len/cap internals), maps, and the comma-ok pattern</li>
+      <li>Structs, pointer receivers, methods, interfaces, embedding, and type assertions</li>
+      <li>Goroutines, channels (buffered + unbuffered), WaitGroup, Mutex, select</li>
+      <li>Packages, exported vs unexported names, go.mod, go get, stdlib</li>
+      <li>net/http — handlers, routing, path params, middleware, redirects</li>
+      <li>encoding/json — struct tags, Marshal/Unmarshal, streaming Encoder/Decoder</li>
+      <li>Three real projects: CLI task manager, concurrent web scraper, URL shortener API</li>
+    </ul>
+  </div>
+
+  <!-- GRADUATION -->
+  <div class="graduation">
+    <div class="grad-icon">🎓</div>
+    <h3>You're a Gopher Now.</h3>
+    <p class="tagline">You came in not knowing Go. You leave with a working web scraper, a CLI tool, and a production-structured REST API. That's not a weekend project. That's a foundation.</p>
+    <div class="skill-pills">
+      <span class="skill-pill">Go fundamentals</span>
+      <span class="skill-pill">concurrency</span>
+      <span class="skill-pill">REST APIs</span>
+      <span class="skill-pill">error handling</span>
+      <span class="skill-pill">package design</span>
+      <span class="skill-pill">net/http</span>
+      <span class="skill-pill">encoding/json</span>
+      <span class="skill-pill">goroutines</span>
+      <span class="skill-pill">channels</span>
+      <span class="skill-pill">sync.RWMutex</span>
+      <span class="skill-pill">middleware</span>
+      <span class="skill-pill">structs + interfaces</span>
+    </div>
+    <p class="tagline" style="margin-top:16px; font-size:16px;">The compiler was always honest with you. Now you're honest with it back.</p>
+    <div class="sign-off">— Gopher's Forge, built with 🔨 and Go</div>
+  </div>
+
+  <!-- WHAT'S NEXT -->
+  <h3>Where to Go From Here</h3>
+  <div class="whats-next">
+    <div class="next-card">
+      <span class="tag">go.dev/doc/effective_go</span>
+      <h5>Effective Go</h5>
+      <p>The canonical guide to idiomatic Go. Written by the Go team. Read it once you're comfortable — it'll level you up fast.</p>
+    </div>
+    <div class="next-card">
+      <span class="tag">go.dev/tour</span>
+      <h5>A Tour of Go</h5>
+      <p>The official interactive tour. Great for filling in gaps and reinforcing what you've learned this weekend.</p>
+    </div>
+    <div class="next-card">
+      <span class="tag">gobyexample.com</span>
+      <h5>Go by Example</h5>
+      <p>Annotated example programs for every major language feature. The best quick reference in the ecosystem.</p>
+    </div>
+    <div class="next-card">
+      <span class="tag">github.com/golang/go</span>
+      <h5>Read the Standard Library</h5>
+      <p>Go's stdlib source is some of the best-written Go in existence. When you wonder how something works, read the source.</p>
+    </div>
+    <div class="next-card">
+      <span class="tag">pkg.go.dev</span>
+      <h5>Add a Database</h5>
+      <p>Take your URL shortener and swap the in-memory store for SQLite using <code>database/sql</code>. You'll learn so much.</p>
+    </div>
+    <div class="next-card">
+      <span class="tag">next project</span>
+      <h5>Build Something Real</h5>
+      <p>A CLI tool you actually need. A webhook receiver. A file watcher. Nothing teaches like shipping something you'll actually use.</p>
+    </div>
+  </div>
+
+</main>
+
+<div class="bottom-nav">
+  <a class="prev-btn" href="#">← M10: REST APIs with net/http</a>
+  <a class="next-btn" href="#">🐹 Keep Forging →</a>
+</div>
+
+</body>
+</html>
