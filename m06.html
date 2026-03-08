@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M06 — Arrays, Slices & Maps | Gopher's Forge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --go-blue: #00ACD7;
+    --go-teal: #00D7A0;
+    --amber: #F5A623;
+    --red: #FF6B6B;
+    --text: #e8ecf5;
+    --muted: #7a859e;
+    --body-max: 760px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(12px); z-index: 100;
+  }
+  .topnav .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--text); }
+  .topnav .brand span { color: var(--go-blue); }
+  .module-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 14px; background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.25); border-radius: 999px; color: var(--go-blue); }
+  .time-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ── HEADER ── */
+  .lesson-header { max-width: var(--body-max); margin: 0 auto; padding: 72px 24px 48px; }
+  .lesson-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-teal); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+  .lesson-title { font-family: 'Syne', sans-serif; font-size: clamp(36px, 6vw, 60px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 20px; }
+  .lesson-title .accent { color: var(--go-blue); }
+  .lesson-intro { font-size: 20px; color: var(--muted); line-height: 1.7; font-style: italic; border-left: 3px solid var(--go-blue); padding-left: 20px; margin-top: 28px; }
+  .lesson-meta { display: flex; gap: 24px; margin-top: 32px; flex-wrap: wrap; }
+  .meta-item { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted); }
+  .meta-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--go-teal); flex-shrink: 0; }
+
+  /* ── BODY ── */
+  .lesson-body { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* ── TYPOGRAPHY ── */
+  h2 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin-top: 56px; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; gap: 12px; }
+  h2 .section-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-blue); background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.2); border-radius: 6px; padding: 3px 9px; font-weight: 400; }
+  h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-top: 40px; margin-bottom: 12px; color: var(--text); }
+  p { margin-bottom: 20px; }
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--go-teal); font-style: italic; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: rgba(0,172,215,0.1); color: var(--go-blue); padding: 2px 7px; border-radius: 5px; }
+
+  /* ── CALLOUTS ── */
+  .callout { border-radius: 12px; padding: 20px 24px; margin: 32px 0; display: flex; gap: 16px; align-items: flex-start; }
+  .callout-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; font-family: 'Syne', sans-serif; font-size: 15px; margin-bottom: 6px; }
+  .callout-body p { margin: 0; font-size: 15px; line-height: 1.7; }
+  .callout-info  { background: rgba(0,172,215,0.07);  border: 1px solid rgba(0,172,215,0.2); }
+  .callout-info  .callout-body p, .callout-info  .callout-body strong { color: var(--go-blue); }
+  .callout-tip   { background: rgba(0,215,160,0.07);  border: 1px solid rgba(0,215,160,0.2); }
+  .callout-tip   .callout-body p, .callout-tip   .callout-body strong { color: var(--go-teal); }
+  .callout-fun   { background: rgba(245,166,35,0.07); border: 1px solid rgba(245,166,35,0.2); }
+  .callout-fun   .callout-body p, .callout-fun   .callout-body strong { color: var(--amber); }
+  .callout-warn  { background: rgba(255,107,107,0.07); border: 1px solid rgba(255,107,107,0.2); }
+  .callout-warn  .callout-body p, .callout-warn  .callout-body strong { color: var(--red); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 28px 0; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-lang  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--go-blue); letter-spacing: 0.1em; text-transform: uppercase; }
+  .code-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  pre { padding: 24px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.7; }
+  .kw  { color: #569cd6; }
+  .fn  { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .cm  { color: #6a9955; font-style: italic; }
+  .pk  { color: #4ec9b0; }
+  .num { color: #b5cea8; }
+  .op  { color: #d4d4d4; }
+  .prompt { color: var(--go-teal); user-select: none; }
+  .out    { color: var(--muted); }
+  .err    { color: var(--red); }
+
+  /* ── VS BLOCK ── */
+  .vs-block { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0; }
+  .vs-side { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .vs-label { padding: 8px 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .vs-label.bad     { color: var(--red);      background: rgba(255,107,107,0.06); }
+  .vs-label.good    { color: var(--go-teal);  background: rgba(0,215,160,0.06); }
+  .vs-label.neutral { color: var(--muted);    background: rgba(255,255,255,0.03); }
+  .vs-side pre { padding: 18px 20px; font-size: 13px; }
+
+  /* ── MEMORY DIAGRAM ── */
+  .mem-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin: 28px 0;
+    overflow-x: auto;
+  }
+  .mem-diagram h5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .mem-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 8px;
+    flex-wrap: nowrap;
+  }
+  .mem-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    width: 100px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-right: 16px;
+  }
+  .mem-cells {
+    display: flex;
+    gap: 2px;
+  }
+  .mem-cell {
+    width: 52px;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--surface2);
+    flex-shrink: 0;
+  }
+  .mem-cell.active { background: rgba(0,172,215,0.12); border-color: rgba(0,172,215,0.4); color: var(--go-blue); }
+  .mem-cell.teal   { background: rgba(0,215,160,0.12); border-color: rgba(0,215,160,0.4); color: var(--go-teal); }
+  .mem-cell.empty  { color: var(--muted); opacity: 0.4; }
+  .mem-cell.idx    { background: transparent; border: none; color: var(--muted); font-size: 11px; height: 24px; }
+  .mem-arrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--go-teal);
+    padding: 0 12px;
+    white-space: nowrap;
+  }
+
+  /* ── ANNOTATED CODE ── */
+  .annotated-code {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin: 28px 0;
+    width: min(960px, 92vw); margin-left: 50%; transform: translateX(-50%);
+  }
+  .ann-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .ann-header span { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .ann-header .lang { color: var(--go-blue); text-transform: uppercase; letter-spacing: 0.1em; }
+  .ann-header .fname { color: var(--muted); }
+  .ann-line { display: grid; grid-template-columns: 1fr 320px; border-bottom: 1px solid rgba(37,42,56,0.5); }
+  .ann-line:last-child { border-bottom: none; }
+  .ann-code { padding: 12px 24px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.6; border-right: 1px solid var(--border); white-space: pre; overflow-x: auto; }
+  .ann-note { padding: 12px 18px; font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.55; display: flex; align-items: center; background: rgba(255,255,255,0.015); word-break: break-word; }
+  .ann-note.highlight { color: var(--go-teal); background: rgba(0,215,160,0.04); }
+  .ann-note.warn      { color: var(--amber);   background: rgba(245,166,35,0.04); }
+  .ann-note.info      { color: var(--go-blue);  background: rgba(0,172,215,0.04); }
+
+  /* ── CHEATSHEET TABLE ── */
+  .cheat-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+  .cheat-table th { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 18px; text-align: left; background: var(--surface2); border: 1px solid var(--border); color: var(--go-blue); }
+  .cheat-table td { padding: 10px 18px; border: 1px solid var(--border); font-family: 'Inter', sans-serif; vertical-align: top; line-height: 1.5; }
+  .cheat-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  .cheat-table td code { font-size: 12px; }
+  .cheat-table td.op-name { color: var(--go-teal); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+  /* ── THREE COLUMN SUMMARY ── */
+  .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 28px 0; }
+  .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .summary-card h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+  .summary-card ul { list-style: none; padding: 0; }
+  .summary-card ul li { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); padding: 4px 0; line-height: 1.5; display: flex; gap: 8px; }
+  .summary-card ul li::before { content: '→'; color: var(--go-blue); flex-shrink: 0; }
+  .summary-card.arrays  { border-color: rgba(0,172,215,0.3); }
+  .summary-card.slices  { border-color: rgba(0,215,160,0.3); }
+  .summary-card.maps    { border-color: rgba(245,166,35,0.3); }
+  .summary-card.arrays h4 { color: var(--go-blue); }
+  .summary-card.slices h4 { color: var(--go-teal); }
+  .summary-card.maps   h4 { color: var(--amber); }
+
+  /* ── EXERCISE ── */
+  .exercise { border: 1px solid rgba(245,166,35,0.3); background: rgba(245,166,35,0.04); border-radius: 12px; padding: 24px 28px; margin: 36px 0; }
+  .exercise h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--amber); margin-bottom: 12px; }
+  .exercise p  { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); margin-bottom: 12px; line-height: 1.6; }
+  .exercise p:last-child { margin-bottom: 0; }
+
+  /* ── CHECKPOINT ── */
+  .checkpoint { background: rgba(0,215,160,0.06); border: 1px solid rgba(0,215,160,0.25); border-radius: 12px; padding: 24px 28px; margin: 40px 0; }
+  .checkpoint h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--go-teal); margin-bottom: 12px; }
+  .checkpoint ul { list-style: none; padding: 0; }
+  .checkpoint ul li { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); padding: 6px 0; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+  .checkpoint ul li::before { content: '✓'; color: var(--go-teal); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── PROJECT TEASER ── */
+  .project-teaser {
+    background: linear-gradient(135deg, rgba(0,172,215,0.08), rgba(0,215,160,0.08));
+    border: 1px solid rgba(0,215,160,0.3);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 40px 0;
+    text-align: center;
+  }
+  .project-teaser .proj-icon { font-size: 48px; margin-bottom: 16px; }
+  .project-teaser h3 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 10px; color: var(--go-teal); }
+  .project-teaser p { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--muted); max-width: 480px; margin: 0 auto 20px; line-height: 1.6; }
+  .project-teaser .proj-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    padding: 8px 20px; border-radius: 999px;
+    background: rgba(0,215,160,0.15); color: var(--go-teal);
+    border: 1px solid rgba(0,215,160,0.3);
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; display: flex; justify-content: space-between; }
+  .prev-btn, .next-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; text-decoration: none; transition: opacity 0.2s; }
+  .prev-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .next-btn { background: var(--go-teal); color: var(--bg); }
+  .prev-btn:hover, .next-btn:hover { opacity: 0.85; text-decoration: none; }
+
+  @media (max-width: 700px) {
+    .topnav { padding: 16px 20px; }
+    .lesson-header, .lesson-body { padding-left: 20px; padding-right: 20px; }
+    .vs-block, .three-col { grid-template-columns: 1fr; }
+    .ann-note { display: none; }
+    .ann-line { grid-template-columns: 1fr; }
+    .ann-code { border-right: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="brand">Gopher's <span>Forge</span></div>
+  <span class="module-badge">M06</span>
+  <span class="time-badge">⏱ 1 hour</span>
+</nav>
+
+<!-- HEADER -->
+<header class="lesson-header">
+  <div class="lesson-eyebrow">Day 1 · Module 06 · Data Structures</div>
+  <h1 class="lesson-title">Arrays, Slices<br/>&amp; <span class="accent">Maps</span></h1>
+  <p class="lesson-intro">
+    Variables hold one value. But real programs deal with collections — lists of users,
+    sets of scores, dictionaries of settings. This module gives you Go's three core
+    collection types, and explains the critical difference between them.
+    Warning: slices will confuse you once, and then you'll never forget them.
+  </p>
+  <div class="lesson-meta">
+    <div class="meta-item"><span class="dot"></span> Day 1 of 2</div>
+    <div class="meta-item"><span class="dot"></span> 1 hour</div>
+    <div class="meta-item"><span class="dot"></span> Last theory before Project #1</div>
+  </div>
+</header>
+
+<!-- BODY -->
+<main class="lesson-body">
+
+  <hr class="divider"/>
+
+  <!-- §1 ARRAYS -->
+  <h2><span class="section-num">§1</span> Arrays — Fixed, Rigid, Rarely Used Directly</h2>
+
+  <p>
+    An array in Go is a <strong>fixed-size, ordered collection of values of the same type.</strong>
+    The size is part of the type — a <code>[3]int</code> and a <code>[5]int</code> are
+    completely different types. You cannot resize an array after it's created.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">arrays — declaration and access</span></div>
+    <pre><span class="cm">// Declare an array of 3 strings</span>
+<span class="kw">var</span> languages [<span class="num">3</span>]<span class="kw">string</span>
+languages[<span class="num">0</span>] = <span class="str">"Go"</span>
+languages[<span class="num">1</span>] = <span class="str">"Python"</span>
+languages[<span class="num">2</span>] = <span class="str">"Rust"</span>
+
+<span class="pk">fmt</span>.<span class="fn">Println</span>(languages[<span class="num">0</span>])   <span class="cm">// Go</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(len(languages))  <span class="cm">// 3</span>
+
+<span class="cm">// Short declaration with values inline</span>
+scores := [<span class="num">4</span>]<span class="kw">int</span>{<span class="num">88</span>, <span class="num">92</span>, <span class="num">76</span>, <span class="num">95</span>}
+
+<span class="cm">// Let Go count the elements with [...]</span>
+names := [...]<span class="kw">string</span>{<span class="str">"Anas"</span>, <span class="str">"Sarah"</span>, <span class="str">"Omar"</span>}
+<span class="pk">fmt</span>.<span class="fn">Println</span>(len(names))  <span class="cm">// 3</span>
+
+<span class="cm">// Iterate with range</span>
+<span class="kw">for</span> i, s := <span class="kw">range</span> scores {
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"scores[%d] = %d\n"</span>, i, s)
+}</pre>
+  </div>
+
+  <!-- Memory diagram for arrays -->
+  <div class="mem-diagram">
+    <h5>// memory layout — scores := [4]int{88, 92, 76, 95}</h5>
+    <div class="mem-row">
+      <div class="mem-label">index</div>
+      <div class="mem-cells">
+        <div class="mem-cell idx">[0]</div>
+        <div class="mem-cell idx">[1]</div>
+        <div class="mem-cell idx">[2]</div>
+        <div class="mem-cell idx">[3]</div>
+      </div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-label">scores</div>
+      <div class="mem-cells">
+        <div class="mem-cell active">88</div>
+        <div class="mem-cell active">92</div>
+        <div class="mem-cell active">76</div>
+        <div class="mem-cell active">95</div>
+      </div>
+      <div class="mem-arrow">← fixed size, all in memory</div>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>Arrays are value types — they copy on assignment</strong>
+      <p>When you assign an array to another variable or pass it to a function, Go makes a complete copy. Changing the copy doesn't affect the original. This is different from most languages — and it's exactly why slices exist.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-fun">
+    <span class="callout-icon">🤔</span>
+    <div class="callout-body">
+      <strong>So when do I actually use arrays?</strong>
+      <p>Rarely directly. Arrays are the low-level building block that <em>slices</em> are built on top of. In practice, you'll almost always reach for a slice. But understanding arrays makes slices click instantly — so pay attention.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §2 SLICES -->
+  <h2><span class="section-num">§2</span> Slices — The Star of the Show 🌟</h2>
+
+  <p>
+    A slice is a <strong>dynamically-sized, flexible view into an array</strong>.
+    It's the data structure you'll use in 95% of your Go code whenever you need a list
+    of things. Unlike arrays, slices can grow, shrink, and be passed around without copying
+    all the data.
+  </p>
+
+  <p>
+    A slice has three components under the hood: a <strong>pointer</strong> to the
+    underlying array, a <strong>length</strong> (how many elements it currently holds),
+    and a <strong>capacity</strong> (how many elements the underlying array can hold before
+    Go needs to allocate a bigger one).
+  </p>
+
+  <!-- Slice memory diagram -->
+  <div class="mem-diagram">
+    <h5>// slice internals — s := []int{10, 20, 30, 40, 50}</h5>
+    <div class="mem-row">
+      <div class="mem-label">index</div>
+      <div class="mem-cells">
+        <div class="mem-cell idx">[0]</div>
+        <div class="mem-cell idx">[1]</div>
+        <div class="mem-cell idx">[2]</div>
+        <div class="mem-cell idx">[3]</div>
+        <div class="mem-cell idx">[4]</div>
+        <div class="mem-cell idx">[5]</div>
+      </div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-label">backing array</div>
+      <div class="mem-cells">
+        <div class="mem-cell teal">10</div>
+        <div class="mem-cell teal">20</div>
+        <div class="mem-cell teal">30</div>
+        <div class="mem-cell teal">40</div>
+        <div class="mem-cell teal">50</div>
+        <div class="mem-cell empty">—</div>
+      </div>
+      <div class="mem-arrow">cap=6, len=5</div>
+    </div>
+    <div class="mem-row" style="margin-top:12px;">
+      <div class="mem-label" style="color:var(--go-teal); font-size:12px;">slice header</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="background:rgba(0,215,160,0.1); border:1px solid rgba(0,215,160,0.3); border-radius:8px; padding:8px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--go-teal);">ptr → [0]</div>
+        <div style="background:rgba(0,215,160,0.1); border:1px solid rgba(0,215,160,0.3); border-radius:8px; padding:8px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--go-teal);">len = 5</div>
+        <div style="background:rgba(0,215,160,0.1); border:1px solid rgba(0,215,160,0.3); border-radius:8px; padding:8px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--go-teal);">cap = 6</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Creating Slices</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">three ways to create a slice</span></div>
+    <pre><span class="cm">// 1. Slice literal — most common</span>
+names := []<span class="kw">string</span>{<span class="str">"Anas"</span>, <span class="str">"Sarah"</span>, <span class="str">"Omar"</span>}
+
+<span class="cm">// 2. make() — create with length and optional capacity</span>
+<span class="cm">// make([]Type, length, capacity)</span>
+scores := <span class="fn">make</span>([]<span class="kw">int</span>, <span class="num">5</span>)        <span class="cm">// len=5, cap=5, all zeros</span>
+buffer := <span class="fn">make</span>([]<span class="kw">byte</span>, <span class="num">0</span>, <span class="num">100</span>)   <span class="cm">// len=0, cap=100 — pre-allocated</span>
+
+<span class="cm">// 3. nil slice — zero value, valid and usable</span>
+<span class="kw">var</span> items []<span class="kw">string</span>  <span class="cm">// nil, len=0, cap=0</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(items == <span class="kw">nil</span>)  <span class="cm">// true</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(len(items))    <span class="cm">// 0 — safe to use immediately</span></pre>
+  </div>
+
+  <h3>The Essential Slice Operations</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">append, len, cap, and slicing</span></div>
+    <pre>fruits := []<span class="kw">string</span>{<span class="str">"apple"</span>, <span class="str">"banana"</span>, <span class="str">"cherry"</span>}
+
+<span class="cm">// append — adds elements, returns a NEW slice</span>
+fruits = <span class="fn">append</span>(fruits, <span class="str">"date"</span>)
+fruits = <span class="fn">append</span>(fruits, <span class="str">"elderberry"</span>, <span class="str">"fig"</span>)  <span class="cm">// append multiple at once</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(fruits)   <span class="cm">// [apple banana cherry date elderberry fig]</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(len(fruits))  <span class="cm">// 6</span>
+
+<span class="cm">// Slicing — create a sub-slice with [low:high]</span>
+<span class="cm">// low is inclusive, high is exclusive</span>
+first3 := fruits[<span class="num">0</span>:<span class="num">3</span>]   <span class="cm">// [apple banana cherry]</span>
+last2  := fruits[<span class="num">4</span>:]    <span class="cm">// [elderberry fig]  (high defaults to len)</span>
+middle := fruits[<span class="num">1</span>:<span class="num">4</span>]   <span class="cm">// [banana cherry date]</span>
+all    := fruits[:]      <span class="cm">// all elements (copy of slice header)</span>
+
+<span class="pk">fmt</span>.<span class="fn">Println</span>(first3, last2, middle)</pre>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>Slices share the underlying array — this will bite you once</strong>
+      <p>When you slice a slice (<code>b := a[1:3]</code>), both <code>a</code> and <code>b</code> point to the <em>same</em> underlying array. Modifying <code>b[0]</code> will also change <code>a[1]</code>. To get a true independent copy, use the built-in <code>copy()</code> function.</p>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">copy() — making an independent slice</span></div>
+    <pre>original := []<span class="kw">int</span>{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>}
+
+<span class="cm">// This shares the array — dangerous</span>
+shared := original[<span class="num">1</span>:<span class="num">4</span>]
+shared[<span class="num">0</span>] = <span class="num">99</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(original)  <span class="cm">// [1 99 3 4 5] — original was modified!</span>
+
+<span class="cm">// This makes a true independent copy — safe</span>
+clone := <span class="fn">make</span>([]<span class="kw">int</span>, len(original))
+<span class="fn">copy</span>(clone, original)
+clone[<span class="num">0</span>] = <span class="num">777</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(original)  <span class="cm">// [1 99 3 4 5] — original unchanged</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(clone)     <span class="cm">// [777 99 3 4 5]</span></pre>
+  </div>
+
+  <h3>Slice Cheat Sheet</h3>
+
+  <table class="cheat-table">
+    <thead>
+      <tr><th>Operation</th><th>Syntax</th><th>What it does</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="op-name">append</td>
+        <td><code>s = append(s, val)</code></td>
+        <td>Add one or more elements to end. Always reassign.</td>
+      </tr>
+      <tr>
+        <td class="op-name">length</td>
+        <td><code>len(s)</code></td>
+        <td>Number of elements currently in the slice.</td>
+      </tr>
+      <tr>
+        <td class="op-name">capacity</td>
+        <td><code>cap(s)</code></td>
+        <td>Size of the underlying array. Grows automatically.</td>
+      </tr>
+      <tr>
+        <td class="op-name">sub-slice</td>
+        <td><code>s[low:high]</code></td>
+        <td>Elements from index low (inclusive) to high (exclusive).</td>
+      </tr>
+      <tr>
+        <td class="op-name">copy</td>
+        <td><code>copy(dst, src)</code></td>
+        <td>Deep copy into dst. Returns number of elements copied.</td>
+      </tr>
+      <tr>
+        <td class="op-name">delete element</td>
+        <td><code>s = append(s[:i], s[i+1:]...)</code></td>
+        <td>Remove element at index i. Classic Go idiom.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="annotated-code">
+    <div class="ann-header">
+      <span class="lang">Go</span>
+      <span class="fname">deleting an element from a slice — annotated</span>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">s := []<span class="kw">string</span>{<span class="str">"a"</span>, <span class="str">"b"</span>, <span class="str">"c"</span>, <span class="str">"d"</span>, <span class="str">"e"</span>}</div>
+      <div class="ann-note highlight">Our slice: indices 0–4.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">i := <span class="num">2</span>  <span class="cm">// delete index 2 ("c")</span></div>
+      <div class="ann-note">We want to remove "c" at position 2.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">s = <span class="fn">append</span>(s[:<span class="num">2</span>], s[<span class="num">3</span>:]...)</div>
+      <div class="ann-note highlight"><code>s[:2]</code> = ["a","b"]. <code>s[3:]</code> = ["d","e"]. Spread and append together. Result: ["a","b","d","e"].</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="pk">fmt</span>.<span class="fn">Println</span>(s)  <span class="cm">// [a b d e]</span></div>
+      <div class="ann-note">"c" is gone. Elements after it shifted left.</div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §3 MAPS -->
+  <h2><span class="section-num">§3</span> Maps — Key-Value Storage 🗺️</h2>
+
+  <p>
+    A map stores key-value pairs. Give it a key, get back a value instantly.
+    It's Go's equivalent of a Python dictionary, JavaScript object, or Java HashMap.
+    Keys can be any comparable type (strings, ints, etc.), and values can be anything.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">creating and using maps</span></div>
+    <pre><span class="cm">// map[KeyType]ValueType</span>
+
+<span class="cm">// Map literal — initialize with values</span>
+scores := <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">int</span>{
+    <span class="str">"Anas"</span>:  <span class="num">95</span>,
+    <span class="str">"Sarah"</span>: <span class="num">88</span>,
+    <span class="str">"Omar"</span>:  <span class="num">72</span>,
+}
+
+<span class="cm">// Access a value by key</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(scores[<span class="str">"Anas"</span>])   <span class="cm">// 95</span>
+
+<span class="cm">// Add or update a key</span>
+scores[<span class="str">"Layla"</span>] = <span class="num">91</span>           <span class="cm">// add new</span>
+scores[<span class="str">"Omar"</span>]  = <span class="num">85</span>           <span class="cm">// update existing</span>
+
+<span class="cm">// Delete a key</span>
+<span class="kw">delete</span>(scores, <span class="str">"Sarah"</span>)
+
+<span class="cm">// Iterate over a map (order is random — by design)</span>
+<span class="kw">for</span> name, score := <span class="kw">range</span> scores {
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"%s: %d\n"</span>, name, score)
+}</pre>
+  </div>
+
+  <h3>The Safe Lookup — The Comma-OK Pattern</h3>
+
+  <p>
+    Here's the critical thing about maps: if you access a key that doesn't exist,
+    Go returns the <strong>zero value</strong> for the value type — silently.
+    This means accessing a missing key doesn't crash — but it can give you
+    unexpected results. The solution is Go's <strong>comma-ok idiom</strong>:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">the comma-ok pattern — always use this for map lookups</span></div>
+    <pre>scores := <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">int</span>{<span class="str">"Anas"</span>: <span class="num">95</span>}
+
+<span class="cm">// ❌ Dangerous — returns 0 if key missing, silently</span>
+score := scores[<span class="str">"Ghost"</span>]
+<span class="pk">fmt</span>.<span class="fn">Println</span>(score)  <span class="cm">// 0 — but is Ghost a real student with score 0?</span>
+
+<span class="cm">// ✅ Safe — the comma-ok pattern</span>
+score, ok := scores[<span class="str">"Anas"</span>]
+<span class="kw">if</span> ok {
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Anas scored %d\n"</span>, score)
+} <span class="kw">else</span> {
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Student not found"</span>)
+}
+
+<span class="cm">// Short form — just checking existence</span>
+<span class="kw">if</span> _, ok := scores[<span class="str">"Ghost"</span>]; !ok {
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Ghost is not a real student (probably)"</span>)
+}</pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-body">
+      <strong>The comma-ok pattern is everywhere in Go</strong>
+      <p>You'll see this same two-value lookup pattern in type assertions, channel receives, and map lookups. Once you learn it once, you recognize it everywhere. It's one of Go's most consistent idioms.</p>
+    </div>
+  </div>
+
+  <h3>Maps of Slices — A Powerful Combo</h3>
+
+  <p>
+    One of the most useful patterns in Go is a map where the values are slices.
+    This lets you group multiple items under the same key — like a dictionary of lists:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">map of slices — grouping data</span></div>
+    <pre><span class="cm">// Group students by their grade</span>
+gradeBook := <span class="kw">map</span>[<span class="kw">string</span>][]<span class="kw">string</span>{}
+
+gradeBook[<span class="str">"A"</span>] = <span class="fn">append</span>(gradeBook[<span class="str">"A"</span>], <span class="str">"Anas"</span>)
+gradeBook[<span class="str">"A"</span>] = <span class="fn">append</span>(gradeBook[<span class="str">"A"</span>], <span class="str">"Layla"</span>)
+gradeBook[<span class="str">"B"</span>] = <span class="fn">append</span>(gradeBook[<span class="str">"B"</span>], <span class="str">"Omar"</span>)
+gradeBook[<span class="str">"C"</span>] = <span class="fn">append</span>(gradeBook[<span class="str">"C"</span>], <span class="str">"Kareem"</span>)
+
+<span class="kw">for</span> grade, students := <span class="kw">range</span> gradeBook {
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Grade %s: %v\n"</span>, grade, students)
+}
+<span class="cm">// Grade A: [Anas Layla]</span>
+<span class="cm">// Grade B: [Omar]</span>
+<span class="cm">// Grade C: [Kareem]</span></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">👀</span>
+    <div class="callout-body">
+      <strong>Maps are reference types</strong>
+      <p>Unlike arrays, maps are reference types. When you pass a map to a function and modify it, the original is modified too. There's no hidden copy — you're always working with the same underlying data. This is usually what you want, but it's good to know.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §4 PUTTING IT ALL TOGETHER -->
+  <h2><span class="section-num">§4</span> Putting It All Together</h2>
+
+  <p>
+    Let's write a program that uses arrays, slices, and maps together —
+    a simple student grade tracker that stores scores, calculates averages,
+    and groups students by performance.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">grade_tracker.go — type this and run it</span></div>
+    <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="kw">func</span> <span class="fn">average</span>(scores []<span class="kw">int</span>) <span class="kw">float64</span> {
+    <span class="kw">if</span> len(scores) == <span class="num">0</span> {
+        <span class="kw">return</span> <span class="num">0</span>
+    }
+    total := <span class="num">0</span>
+    <span class="kw">for</span> _, s := <span class="kw">range</span> scores {
+        total += s
+    }
+    <span class="kw">return</span> <span class="kw">float64</span>(total) / <span class="kw">float64</span>(len(scores))
+}
+
+<span class="kw">func</span> <span class="fn">rank</span>(avg <span class="kw">float64</span>) <span class="kw">string</span> {
+    <span class="kw">switch</span> {
+    <span class="kw">case</span> avg >= <span class="num">90</span>: <span class="kw">return</span> <span class="str">"🏆 Forge Master"</span>
+    <span class="kw">case</span> avg >= <span class="num">75</span>: <span class="kw">return</span> <span class="str">"⚔️  Senior Gopher"</span>
+    <span class="kw">case</span> avg >= <span class="num">60</span>: <span class="kw">return</span> <span class="str">"🔨 Apprentice"</span>
+    <span class="kw">default</span>:        <span class="kw">return</span> <span class="str">"📚 Keep Studying"</span>
+    }
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="cm">// Map of student name → slice of their scores</span>
+    students := <span class="kw">map</span>[<span class="kw">string</span>][]<span class="kw">int</span>{
+        <span class="str">"Anas"</span>:   {<span class="num">95</span>, <span class="num">88</span>, <span class="num">92</span>, <span class="num">97</span>},
+        <span class="str">"Sarah"</span>:  {<span class="num">78</span>, <span class="num">82</span>, <span class="num">75</span>, <span class="num">80</span>},
+        <span class="str">"Omar"</span>:   {<span class="num">62</span>, <span class="num">58</span>, <span class="num">70</span>, <span class="num">65</span>},
+        <span class="str">"Layla"</span>:  {<span class="num">91</span>, <span class="num">96</span>, <span class="num">89</span>, <span class="num">94</span>},
+    }
+
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"=== Gopher's Forge — Grade Report ==="</span>)
+    <span class="pk">fmt</span>.<span class="fn">Println</span>()
+
+    <span class="cm">// Print each student's average and rank</span>
+    <span class="kw">for</span> name, scores := <span class="kw">range</span> students {
+        avg := <span class="fn">average</span>(scores)
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"%-8s avg: %5.1f  %s\n"</span>, name, avg, <span class="fn">rank</span>(avg))
+    }
+
+    <span class="pk">fmt</span>.<span class="fn">Println</span>()
+
+    <span class="cm">// Add a new score for Anas mid-bootcamp</span>
+    students[<span class="str">"Anas"</span>] = <span class="fn">append</span>(students[<span class="str">"Anas"</span>], <span class="num">100</span>)
+    newAvg := <span class="fn">average</span>(students[<span class="str">"Anas"</span>])
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Anas just aced M06! New avg: %.1f — %s\n"</span>, newAvg, <span class="fn">rank</span>(newAvg))
+}</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">terminal</span><span class="code-label">expected output (map order may vary)</span></div>
+    <pre><span class="out">=== Gopher's Forge — Grade Report ===
+
+Anas     avg:  93.0  🏆 Forge Master
+Sarah    avg:  78.8  ⚔️  Senior Gopher
+Omar     avg:  63.8  🔨 Apprentice
+Layla    avg:  92.5  🏆 Forge Master
+
+Anas just aced M06! New avg: 94.4 — 🏆 Forge Master</span></pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- QUICK SUMMARY -->
+  <h2><span class="section-num">§5</span> Arrays vs Slices vs Maps — Quick Reference</h2>
+
+  <div class="three-col">
+    <div class="summary-card arrays">
+      <h4>📦 Arrays</h4>
+      <ul>
+        <li>Fixed size, set at compile time</li>
+        <li>Size is part of the type</li>
+        <li>Value type — copies on assign</li>
+        <li>Rarely used directly</li>
+        <li>Use when size is truly fixed</li>
+      </ul>
+    </div>
+    <div class="summary-card slices">
+      <h4>🌟 Slices</h4>
+      <ul>
+        <li>Dynamic size, grows with append</li>
+        <li>Built on top of arrays</li>
+        <li>Reference type — shares data</li>
+        <li>Your go-to list type</li>
+        <li>Use for almost everything</li>
+      </ul>
+    </div>
+    <div class="summary-card maps">
+      <h4>🗺️ Maps</h4>
+      <ul>
+        <li>Key-value pairs</li>
+        <li>Keys must be comparable types</li>
+        <li>Reference type — no hidden copy</li>
+        <li>Iteration order is random</li>
+        <li>Use the comma-ok for lookups</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- EXERCISE -->
+  <div class="exercise">
+    <h4>🛠 Try It Yourself</h4>
+    <p>
+      Write a function called <code>wordCount</code> that takes a slice of words
+      (<code>[]string</code>) and returns a <code>map[string]int</code> where each
+      key is a unique word and the value is how many times it appeared.
+    </p>
+    <p>
+      Test it with: <code>[]string{"go", "is", "fast", "go", "is", "fun", "go"}</code>
+    </p>
+    <p>
+      Expected output: <code>map[go:3 is:2 fast:1 fun:1]</code>
+    </p>
+    <p>
+      <strong>Bonus:</strong> Loop through the result and print only the words
+      that appear more than once.
+    </p>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- CHECKPOINT -->
+  <div class="checkpoint">
+    <h4>✅ Module 06 Checkpoint</h4>
+    <ul>
+      <li>You know arrays are fixed-size value types and rarely used directly</li>
+      <li>You understand a slice's three components: pointer, length, and capacity</li>
+      <li>You can create slices with literals, <code>make()</code>, and nil declarations</li>
+      <li>You can use <code>append()</code>, <code>len()</code>, <code>cap()</code>, sub-slicing, and <code>copy()</code></li>
+      <li>You know that sub-slices share the underlying array and when to use <code>copy()</code></li>
+      <li>You can create, read, update, and delete from maps</li>
+      <li>You always use the comma-ok pattern for safe map lookups</li>
+      <li>You can combine maps and slices to model real-world data</li>
+    </ul>
+  </div>
+
+  <!-- PROJECT TEASER -->
+  <div class="project-teaser">
+    <div class="proj-icon">🗒️</div>
+    <h3>You're ready for Project #1</h3>
+    <p>
+      You've completed all six Day 1 theory modules. Variables, control flow,
+      functions, error handling, slices, maps — you now have everything you need
+      to build a real CLI program from scratch. Let's ship something.
+    </p>
+    <span class="proj-badge">▶ Next: Project #1 — CLI Task Manager</span>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="prev-btn" href="m05.html">← M05: Functions &amp; Error Handling</a>
+  <a class="next-btn" href="p1.html">Next: Project #1 — CLI Task Manager →</a>
+</div>
+
+</body>
+</html>
