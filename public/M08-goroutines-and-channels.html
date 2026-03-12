@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M08 — Goroutines & Channels | Gopher's Forge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --go-blue: #00ACD7;
+    --go-teal: #00D7A0;
+    --amber: #F5A623;
+    --red: #FF6B6B;
+    --purple: #B48EF7;
+    --text: #e8ecf5;
+    --muted: #7a859e;
+    --body-max: 760px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(12px); z-index: 100;
+  }
+  .topnav .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--text); }
+  .topnav .brand span { color: var(--go-blue); }
+  .module-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 14px; background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.25); border-radius: 999px; color: var(--go-blue); }
+  .time-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ── HEADER ── */
+  .lesson-header { max-width: var(--body-max); margin: 0 auto; padding: 72px 24px 48px; }
+  .lesson-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-teal); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+  .lesson-title { font-family: 'Syne', sans-serif; font-size: clamp(36px, 6vw, 60px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 20px; }
+  .lesson-title .accent { color: var(--go-blue); }
+  .lesson-intro { font-size: 20px; color: var(--muted); line-height: 1.7; font-style: italic; border-left: 3px solid var(--go-blue); padding-left: 20px; margin-top: 28px; }
+  .lesson-meta { display: flex; gap: 24px; margin-top: 32px; flex-wrap: wrap; }
+  .meta-item { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted); }
+  .meta-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--go-teal); flex-shrink: 0; }
+
+  /* ── BODY ── */
+  .lesson-body { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* ── TYPOGRAPHY ── */
+  h2 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin-top: 56px; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; gap: 12px; }
+  h2 .section-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-blue); background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.2); border-radius: 6px; padding: 3px 9px; font-weight: 400; }
+  h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-top: 40px; margin-bottom: 12px; color: var(--text); }
+  p { margin-bottom: 20px; }
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--go-teal); font-style: italic; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: rgba(0,172,215,0.1); color: var(--go-blue); padding: 2px 7px; border-radius: 5px; }
+  blockquote { border-left: 3px solid var(--go-blue); padding: 4px 0 4px 24px; margin: 32px 0; font-style: italic; color: var(--muted); font-size: 19px; }
+  blockquote cite { display: block; margin-top: 10px; font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-blue); }
+
+  /* ── CALLOUTS ── */
+  .callout { border-radius: 12px; padding: 20px 24px; margin: 32px 0; display: flex; gap: 16px; align-items: flex-start; }
+  .callout-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; font-family: 'Syne', sans-serif; font-size: 15px; margin-bottom: 6px; }
+  .callout-body p { margin: 0; font-size: 15px; line-height: 1.7; }
+  .callout-info  { background: rgba(0,172,215,0.07);  border: 1px solid rgba(0,172,215,0.2); }
+  .callout-info  .callout-body p, .callout-info  .callout-body strong { color: var(--go-blue); }
+  .callout-tip   { background: rgba(0,215,160,0.07);  border: 1px solid rgba(0,215,160,0.2); }
+  .callout-tip   .callout-body p, .callout-tip   .callout-body strong { color: var(--go-teal); }
+  .callout-fun   { background: rgba(245,166,35,0.07); border: 1px solid rgba(245,166,35,0.2); }
+  .callout-fun   .callout-body p, .callout-fun   .callout-body strong { color: var(--amber); }
+  .callout-warn  { background: rgba(255,107,107,0.07); border: 1px solid rgba(255,107,107,0.2); }
+  .callout-warn  .callout-body p, .callout-warn  .callout-body strong { color: var(--red); }
+  .callout-purple { background: rgba(180,142,247,0.07); border: 1px solid rgba(180,142,247,0.25); }
+  .callout-purple .callout-body p, .callout-purple .callout-body strong { color: var(--purple); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 28px 0; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-lang  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--go-blue); letter-spacing: 0.1em; text-transform: uppercase; }
+  .code-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  pre { padding: 24px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.7; }
+  .kw  { color: #569cd6; }
+  .fn  { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .cm  { color: #6a9955; font-style: italic; }
+  .pk  { color: #4ec9b0; }
+  .num { color: #b5cea8; }
+  .out { color: var(--muted); }
+  .err { color: var(--red); }
+
+  /* ── VS BLOCK ── */
+  .vs-block { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0; }
+  .vs-side { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .vs-label { padding: 8px 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .vs-label.bad     { color: var(--red);      background: rgba(255,107,107,0.06); }
+  .vs-label.good    { color: var(--go-teal);  background: rgba(0,215,160,0.06); }
+  .vs-label.neutral { color: var(--muted);    background: rgba(255,255,255,0.03); }
+  .vs-side pre { padding: 18px 20px; font-size: 13px; }
+
+  /* ── ANNOTATED CODE ── */
+  .annotated-code {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin: 28px 0;
+    width: min(960px, 92vw); margin-left: 50%; transform: translateX(-50%);
+  }
+  .ann-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .ann-header span { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .ann-header .lang { color: var(--go-blue); text-transform: uppercase; letter-spacing: 0.1em; }
+  .ann-header .fname { color: var(--muted); }
+  .ann-line { display: grid; grid-template-columns: 1fr 320px; border-bottom: 1px solid rgba(37,42,56,0.5); }
+  .ann-line:last-child { border-bottom: none; }
+  .ann-code { padding: 12px 24px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.6; border-right: 1px solid var(--border); white-space: pre; overflow-x: auto; }
+  .ann-note { padding: 12px 18px; font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.55; display: flex; align-items: center; background: rgba(255,255,255,0.015); word-break: break-word; }
+  .ann-note.highlight { color: var(--go-teal); background: rgba(0,215,160,0.04); }
+  .ann-note.warn      { color: var(--amber);   background: rgba(245,166,35,0.04); }
+  .ann-note.info      { color: var(--go-blue);  background: rgba(0,172,215,0.04); }
+
+  /* ── CONCURRENCY DIAGRAM ── */
+  .concurrency-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin: 28px 0;
+    overflow-x: auto;
+  }
+  .concurrency-diagram h5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .cd-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 12px;
+    min-width: 500px;
+  }
+  .cd-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    width: 110px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-right: 16px;
+  }
+  .cd-bar {
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .cd-gap { width: 6px; flex-shrink: 0; }
+  .cd-bar-blue  { background: rgba(0,172,215,0.2);  border: 1px solid rgba(0,172,215,0.4);  color: var(--go-blue); }
+  .cd-bar-teal  { background: rgba(0,215,160,0.2);  border: 1px solid rgba(0,215,160,0.4);  color: var(--go-teal); }
+  .cd-bar-amber { background: rgba(245,166,35,0.2); border: 1px solid rgba(245,166,35,0.4); color: var(--amber); }
+  .cd-timeline {
+    display: flex;
+    align-items: center;
+    margin-left: 110px;
+    gap: 0;
+    margin-bottom: 8px;
+  }
+  .cd-tick {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--border);
+    width: 60px;
+    flex-shrink: 0;
+    border-left: 1px dashed var(--border);
+    padding-left: 4px;
+  }
+
+  /* ── CHANNEL DIAGRAM ── */
+  .channel-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin: 28px 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .ch-actor {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .ch-actor-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .ch-actor-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .ch-actor.sender { border: 2px solid var(--go-blue); }
+  .ch-actor.sender .ch-actor-label { color: var(--go-blue); }
+  .ch-actor.receiver { border: 2px solid var(--go-teal); }
+  .ch-actor.receiver .ch-actor-label { color: var(--go-teal); }
+  .ch-pipe {
+    flex: 1;
+    min-width: 120px;
+    position: relative;
+  }
+  .ch-pipe-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .ch-pipe-track {
+    height: 32px;
+    background: rgba(245,166,35,0.08);
+    border: 1px solid rgba(245,166,35,0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .ch-slot {
+    width: 36px; height: 22px;
+    border: 1px solid rgba(245,166,35,0.4);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    background: rgba(245,166,35,0.12);
+  }
+  .ch-slot.empty { opacity: 0.3; }
+  .ch-arrow {
+    font-size: 20px;
+    color: var(--muted);
+  }
+
+  /* ── EXERCISE ── */
+  .exercise { border: 1px solid rgba(245,166,35,0.3); background: rgba(245,166,35,0.04); border-radius: 12px; padding: 24px 28px; margin: 36px 0; }
+  .exercise h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--amber); margin-bottom: 12px; }
+  .exercise p  { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); margin-bottom: 12px; line-height: 1.6; }
+  .exercise p:last-child { margin-bottom: 0; }
+
+  /* ── CHECKPOINT ── */
+  .checkpoint { background: rgba(0,215,160,0.06); border: 1px solid rgba(0,215,160,0.25); border-radius: 12px; padding: 24px 28px; margin: 40px 0; }
+  .checkpoint h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--go-teal); margin-bottom: 12px; }
+  .checkpoint ul { list-style: none; padding: 0; }
+  .checkpoint ul li { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); padding: 6px 0; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+  .checkpoint ul li::before { content: '✓'; color: var(--go-teal); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; display: flex; justify-content: space-between; }
+  .prev-btn, .next-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; text-decoration: none; transition: opacity 0.2s; }
+  .prev-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .next-btn { background: var(--go-blue); color: #fff; }
+  .prev-btn:hover, .next-btn:hover { opacity: 0.85; }
+
+  @media (max-width: 700px) {
+    .topnav { padding: 16px 20px; }
+    .lesson-header, .lesson-body { padding-left: 20px; padding-right: 20px; }
+    .vs-block { grid-template-columns: 1fr; }
+    .channel-diagram { flex-direction: column; }
+    .ann-note { display: none; }
+    .ann-line { grid-template-columns: 1fr; }
+    .ann-code { border-right: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="brand">Gopher's <span>Forge</span></div>
+  <span class="module-badge">M08</span>
+  <span class="time-badge">⏱ 1 hour</span>
+</nav>
+
+<!-- HEADER -->
+<header class="lesson-header">
+  <div class="lesson-eyebrow">Day 2 · Module 08 · Concurrency</div>
+  <h1 class="lesson-title">Goroutines &amp;<br/><span class="accent">Channels</span></h1>
+  <p class="lesson-intro">
+    This is the module people mention when they say Go changed how they think about
+    programming. Most languages bolt concurrency on as an afterthought. Go was designed
+    from day one for it. Two keywords — <code>go</code> and <code>chan</code> — unlock
+    a concurrency model that's both powerful and surprisingly approachable.
+  </p>
+  <div class="lesson-meta">
+    <div class="meta-item"><span class="dot"></span> Day 2 of 2</div>
+    <div class="meta-item"><span class="dot"></span> 1 hour</div>
+    <div class="meta-item"><span class="dot"></span> The feature that changes everything</div>
+  </div>
+</header>
+
+<main class="lesson-body">
+
+  <hr class="divider"/>
+
+  <!-- §1 THE PROBLEM -->
+  <h2><span class="section-num">§1</span> The Problem Concurrency Solves</h2>
+
+  <p>
+    Imagine you need to fetch data from three different APIs. Done sequentially,
+    you wait for API 1 to finish before starting API 2, and for API 2 before starting
+    API 3. If each takes 300ms, you're waiting 900ms total.
+  </p>
+
+  <p>
+    But those three requests don't depend on each other. You could fire all three
+    at the same time and be done in ~300ms. That's concurrency — doing multiple
+    things at once instead of one after the other.
+  </p>
+
+  <!-- Timeline diagram -->
+  <div class="concurrency-diagram">
+    <h5>// sequential vs concurrent — time comparison</h5>
+
+    <p style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin-bottom:16px;">Sequential (900ms total):</p>
+    <div class="cd-row">
+      <div class="cd-label">API 1</div>
+      <div class="cd-bar cd-bar-blue" style="width:180px;">300ms</div>
+    </div>
+    <div class="cd-row">
+      <div class="cd-label">API 2</div>
+      <div style="width:180px; height:32px; flex-shrink:0;"></div>
+      <div class="cd-gap"></div>
+      <div class="cd-bar cd-bar-teal" style="width:180px;">300ms</div>
+    </div>
+    <div class="cd-row" style="margin-bottom:32px;">
+      <div class="cd-label">API 3</div>
+      <div style="width:360px; height:32px; flex-shrink:0;"></div>
+      <div class="cd-gap"></div>
+      <div class="cd-bar cd-bar-amber" style="width:180px;">300ms</div>
+    </div>
+
+    <p style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--go-teal); margin-bottom:16px;">Concurrent with goroutines (~300ms total):</p>
+    <div class="cd-row">
+      <div class="cd-label">API 1</div>
+      <div class="cd-bar cd-bar-blue" style="width:180px;">300ms</div>
+    </div>
+    <div class="cd-row">
+      <div class="cd-label">API 2</div>
+      <div class="cd-bar cd-bar-teal" style="width:180px;">300ms</div>
+    </div>
+    <div class="cd-row">
+      <div class="cd-label">API 3</div>
+      <div class="cd-bar cd-bar-amber" style="width:180px;">300ms</div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §2 GOROUTINES -->
+  <h2><span class="section-num">§2</span> Goroutines — Lightweight Concurrent Tasks</h2>
+
+  <p>
+    A goroutine is a function that runs <strong>concurrently</strong> with the rest of
+    your program. You launch one with the <code>go</code> keyword in front of any function call.
+    That's it. One word.
+  </p>
+
+  <p>
+    Goroutines are not OS threads — they're much cheaper. Go can run hundreds of
+    thousands of goroutines in the same program, managing them with its own scheduler.
+    A typical goroutine starts with just 2KB of stack space (vs ~1MB for a thread).
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">your first goroutine</span></div>
+    <pre><span class="kw">func</span> <span class="fn">sayHello</span>(name <span class="kw">string</span>) {
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Hello from"</span>, name)
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="cm">// Normal call — runs synchronously</span>
+    <span class="fn">sayHello</span>(<span class="str">"main"</span>)
+
+    <span class="cm">// Goroutine — runs concurrently, doesn't block</span>
+    <span class="kw">go</span> <span class="fn">sayHello</span>(<span class="str">"goroutine 1"</span>)
+    <span class="kw">go</span> <span class="fn">sayHello</span>(<span class="str">"goroutine 2"</span>)
+    <span class="kw">go</span> <span class="fn">sayHello</span>(<span class="str">"goroutine 3"</span>)
+
+    <span class="cm">// ⚠️ Problem: main() might exit before goroutines finish!</span>
+    <span class="cm">// We'll fix this in a moment.</span>
+}</pre>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>main() doesn't wait for goroutines</strong>
+      <p>When <code>main()</code> returns, the entire program exits — even if goroutines are still running. If you run the code above, you might see zero, one, or all three goroutine messages, depending on timing. We need a way to wait for them. Enter: <code>sync.WaitGroup</code>.</p>
+    </div>
+  </div>
+
+  <h3>WaitGroup — Waiting for Goroutines to Finish</h3>
+
+  <p>
+    A <code>sync.WaitGroup</code> is a counter. You add to it before launching
+    a goroutine, and each goroutine calls <code>Done()</code> when it finishes.
+    <code>Wait()</code> blocks until the counter hits zero:
+  </p>
+
+  <div class="annotated-code">
+    <div class="ann-header">
+      <span class="lang">Go</span>
+      <span class="fname">sync.WaitGroup — annotated</span>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">var</span> wg sync.WaitGroup</div>
+      <div class="ann-note highlight">WaitGroup is a counter. Zero = all done. Must be zero-valued — don't initialize with make().</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">for</span> i := <span class="num">1</span>; i <= <span class="num">3</span>; i++ {</div>
+      <div class="ann-note">Launch 3 goroutines.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    wg.<span class="fn">Add</span>(<span class="num">1</span>)</div>
+      <div class="ann-note highlight">Increment counter BEFORE launching the goroutine. Never inside the goroutine — there's a race condition risk.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="kw">go</span> <span class="kw">func</span>(id <span class="kw">int</span>) {</div>
+      <div class="ann-note highlight">Anonymous goroutine. We pass <code>i</code> as a parameter (<code>id</code>) to avoid the classic loop closure bug.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">        <span class="kw">defer</span> wg.<span class="fn">Done</span>()</div>
+      <div class="ann-note highlight">defer Done() — runs when this goroutine's function returns. Decrements the counter. The defer ensures it always runs even if the goroutine panics.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Worker %d done\n"</span>, id)</div>
+      <div class="ann-note">Do the actual work here.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    }(i)</div>
+      <div class="ann-note">The (i) immediately invokes the function, passing i as the id parameter.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">}</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">wg.<span class="fn">Wait</span>()</div>
+      <div class="ann-note highlight">Block here until the WaitGroup counter reaches zero — meaning all goroutines called Done(). Only then does main() continue.</div>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">🐛</span>
+    <div class="callout-body">
+      <strong>The loop closure bug — memorize this</strong>
+      <p>If you write <code>go func() { fmt.Println(i) }()</code> inside a loop, every goroutine captures the <em>same</em> <code>i</code> variable. By the time they run, <code>i</code> is already at its final value. Always pass loop variables as parameters: <code>go func(id int) { ... }(i)</code>. This is one of the most common Go gotchas.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §3 CHANNELS -->
+  <h2><span class="section-num">§3</span> Channels — Communication Between Goroutines</h2>
+
+  <blockquote>
+    "Don't communicate by sharing memory; share memory by communicating."
+    <cite>— Go Proverb</cite>
+  </blockquote>
+
+  <p>
+    Goroutines need to pass data to each other safely. The Go way is channels —
+    typed conduits that let goroutines send and receive values. Think of a channel
+    like a pipe: one goroutine puts values in one end, another reads from the other end.
+  </p>
+
+  <!-- Channel diagram -->
+  <div class="channel-diagram">
+    <div class="ch-actor sender">
+      <div class="ch-actor-label">Sender</div>
+      <div class="ch-actor-sub">ch ← value</div>
+    </div>
+    <div class="ch-arrow">→</div>
+    <div class="ch-pipe">
+      <div class="ch-pipe-label">chan int (buffered, cap=3)</div>
+      <div class="ch-pipe-track">
+        <div class="ch-slot">42</div>
+        <div class="ch-slot">17</div>
+        <div class="ch-slot empty">—</div>
+      </div>
+    </div>
+    <div class="ch-arrow">→</div>
+    <div class="ch-actor receiver">
+      <div class="ch-actor-label">Receiver</div>
+      <div class="ch-actor-sub">value := ←ch</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">creating and using channels</span></div>
+    <pre><span class="cm">// Create a channel with make() — specify the type it carries</span>
+ch := <span class="fn">make</span>(<span class="kw">chan</span> <span class="kw">int</span>)       <span class="cm">// unbuffered channel of ints</span>
+strCh := <span class="fn">make</span>(<span class="kw">chan</span> <span class="kw">string</span>) <span class="cm">// unbuffered channel of strings</span>
+
+<span class="cm">// Send a value into a channel — blocks until someone receives</span>
+ch &lt;- <span class="num">42</span>
+
+<span class="cm">// Receive a value from a channel — blocks until someone sends</span>
+val := &lt;-ch
+
+<span class="cm">// Close a channel — signals no more values will be sent</span>
+<span class="fn">close</span>(ch)</pre>
+  </div>
+
+  <h3>Unbuffered Channels — Synchronous Handoff</h3>
+  <p>
+    An unbuffered channel has no storage. A send blocks until a receiver is ready,
+    and a receive blocks until a sender sends. It's a synchronous handoff —
+    both sides must be present at the same time:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">unbuffered channel — basic pattern</span></div>
+    <pre><span class="kw">func</span> <span class="fn">main</span>() {
+    ch := <span class="fn">make</span>(<span class="kw">chan</span> <span class="kw">string</span>)
+
+    <span class="cm">// Launch a goroutine to send a value</span>
+    <span class="kw">go</span> <span class="kw">func</span>() {
+        result := <span class="str">"Hello from the other goroutine!"</span>
+        ch &lt;- result  <span class="cm">// send — blocks until main() receives</span>
+    }()
+
+    <span class="cm">// Receive — blocks until the goroutine sends</span>
+    msg := &lt;-ch
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(msg)
+    <span class="cm">// Hello from the other goroutine!</span>
+}</pre>
+  </div>
+
+  <h3>Buffered Channels — Async with a Buffer</h3>
+  <p>
+    A buffered channel has a capacity. Sends don't block until the buffer is full,
+    and receives don't block as long as the buffer has values. Use them when the
+    sender and receiver run at different speeds:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">buffered channels</span></div>
+    <pre><span class="cm">// Buffered channel with capacity 3</span>
+ch := <span class="fn">make</span>(<span class="kw">chan</span> <span class="kw">int</span>, <span class="num">3</span>)
+
+<span class="cm">// These three sends don't block — buffer has room</span>
+ch &lt;- <span class="num">1</span>
+ch &lt;- <span class="num">2</span>
+ch &lt;- <span class="num">3</span>
+
+<span class="cm">// ch <- 4  would block here — buffer is full</span>
+
+<span class="cm">// Receive from the buffer</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(&lt;-ch)  <span class="cm">// 1</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(&lt;-ch)  <span class="cm">// 2</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(&lt;-ch)  <span class="cm">// 3</span>
+
+<span class="cm">// Range over a closed channel — receives all values then stops</span>
+results := <span class="fn">make</span>(<span class="kw">chan</span> <span class="kw">int</span>, <span class="num">5</span>)
+<span class="kw">for</span> i := <span class="num">1</span>; i <= <span class="num">5</span>; i++ { results &lt;- i * i }
+<span class="fn">close</span>(results)
+
+<span class="kw">for</span> v := <span class="kw">range</span> results {
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(v)  <span class="cm">// 1, 4, 9, 16, 25</span>
+}</pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §4 REAL PATTERN: FAN-OUT -->
+  <h2><span class="section-num">§4</span> Real Pattern — Fan-Out with WaitGroup + Channel</h2>
+
+  <p>
+    Here's the pattern you'll use constantly in real Go code: launch multiple
+    goroutines to do work in parallel, collect all their results through a channel,
+    and process them when done.
+  </p>
+
+  <p>
+    This is called <strong>fan-out</strong> — one goroutine fans out work to many,
+    then collects results back in. Let's simulate fetching URLs concurrently:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">fan-out pattern — parallel work + result collection</span></div>
+    <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"fmt"</span>
+    <span class="str">"sync"</span>
+    <span class="str">"time"</span>
+)
+
+<span class="kw">type</span> Result <span class="kw">struct</span> {
+    URL      <span class="kw">string</span>
+    Duration <span class="kw">string</span>
+    Status   <span class="kw">string</span>
+}
+
+<span class="cm">// Simulates fetching a URL — takes variable time</span>
+<span class="kw">func</span> <span class="fn">fetchURL</span>(url <span class="kw">string</span>, delay time.Duration, results <span class="kw">chan</span>&lt;- Result) {
+    start := time.<span class="fn">Now</span>()
+    time.<span class="fn">Sleep</span>(delay)  <span class="cm">// simulate network latency</span>
+    results &lt;- Result{
+        URL:      url,
+        Duration: time.<span class="fn">Since</span>(start).<span class="fn">Round</span>(time.Millisecond).<span class="fn">String</span>(),
+        Status:   <span class="str">"200 OK"</span>,
+    }
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    urls := []<span class="kw">struct</span> {
+        url   <span class="kw">string</span>
+        delay time.Duration
+    }{
+        {<span class="str">"https://api.forge.go/users"</span>,    <span class="num">120</span> * time.Millisecond},
+        {<span class="str">"https://api.forge.go/products"</span>,  <span class="num">80</span>  * time.Millisecond},
+        {<span class="str">"https://api.forge.go/orders"</span>,    <span class="num">200</span> * time.Millisecond},
+        {<span class="str">"https://api.forge.go/analytics"</span>, <span class="num">60</span>  * time.Millisecond},
+    }
+
+    <span class="cm">// Buffered channel — one slot per URL so sends never block</span>
+    results := <span class="fn">make</span>(<span class="kw">chan</span> Result, len(urls))
+
+    <span class="kw">var</span> wg sync.WaitGroup
+    start := time.<span class="fn">Now</span>()
+
+    <span class="cm">// Fan-out: launch one goroutine per URL</span>
+    <span class="kw">for</span> _, u := <span class="kw">range</span> urls {
+        wg.<span class="fn">Add</span>(<span class="num">1</span>)
+        <span class="kw">go</span> <span class="kw">func</span>(url <span class="kw">string</span>, delay time.Duration) {
+            <span class="kw">defer</span> wg.<span class="fn">Done</span>()
+            <span class="fn">fetchURL</span>(url, delay, results)
+        }(u.url, u.delay)
+    }
+
+    <span class="cm">// Close channel once all goroutines finish</span>
+    <span class="kw">go</span> <span class="kw">func</span>() {
+        wg.<span class="fn">Wait</span>()
+        <span class="fn">close</span>(results)
+    }()
+
+    <span class="cm">// Collect results — range ends when channel is closed</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Fetching all URLs concurrently..."</span>)
+    <span class="kw">for</span> r := <span class="kw">range</span> results {
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"  %-40s %s [%s]\n"</span>, r.URL, r.Status, r.Duration)
+    }
+
+    total := time.<span class="fn">Since</span>(start).<span class="fn">Round</span>(time.Millisecond)
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"\nTotal time: %s (sequential would be ~460ms)\n"</span>, total)
+}</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">terminal</span><span class="code-label">expected output</span></div>
+    <pre><span class="out">Fetching all URLs concurrently...
+  https://api.forge.go/analytics            200 OK [60ms]
+  https://api.forge.go/products             200 OK [80ms]
+  https://api.forge.go/users                200 OK [120ms]
+  https://api.forge.go/orders               200 OK [200ms]
+
+Total time: 202ms (sequential would be ~460ms)</span></pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-body">
+      <strong>The results come back in completion order, not launch order</strong>
+      <p>Analytics (60ms) finishes first even though it was launched fourth. This is concurrent execution — the Go scheduler runs all four goroutines simultaneously and your channel collects them as they arrive. This is why the total time is ~200ms instead of ~460ms.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §5 SELECT -->
+  <h2><span class="section-num">§5</span> select — Handling Multiple Channels</h2>
+
+  <p>
+    <code>select</code> is like a <code>switch</code> statement for channels. It
+    waits on multiple channel operations at once and runs the first one that's ready.
+    If multiple are ready, it picks one at random:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">select — waiting on multiple channels</span></div>
+    <pre><span class="kw">func</span> <span class="fn">main</span>() {
+    ch1 := <span class="fn">make</span>(<span class="kw">chan</span> <span class="kw">string</span>)
+    ch2 := <span class="fn">make</span>(<span class="kw">chan</span> <span class="kw">string</span>)
+
+    <span class="kw">go</span> <span class="kw">func</span>() {
+        time.<span class="fn">Sleep</span>(<span class="num">100</span> * time.Millisecond)
+        ch1 &lt;- <span class="str">"result from service A"</span>
+    }()
+
+    <span class="kw">go</span> <span class="kw">func</span>() {
+        time.<span class="fn">Sleep</span>(<span class="num">200</span> * time.Millisecond)
+        ch2 &lt;- <span class="str">"result from service B"</span>
+    }()
+
+    <span class="cm">// Wait for whichever channel sends first</span>
+    <span class="kw">for</span> i := <span class="num">0</span>; i < <span class="num">2</span>; i++ {
+        <span class="kw">select</span> {
+        <span class="kw">case</span> msg := &lt;-ch1:
+            <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"ch1:"</span>, msg)
+        <span class="kw">case</span> msg := &lt;-ch2:
+            <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"ch2:"</span>, msg)
+        }
+    }
+    <span class="cm">// ch1: result from service A   ← arrives at 100ms</span>
+    <span class="cm">// ch2: result from service B   ← arrives at 200ms</span>
+}</pre>
+  </div>
+
+  <h3>Timeout Pattern with select</h3>
+  <p>
+    One of the most useful <code>select</code> patterns is implementing a timeout —
+    give up waiting if a result doesn't arrive within a deadline:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">timeout with select + time.After</span></div>
+    <pre><span class="kw">func</span> <span class="fn">fetchWithTimeout</span>(ch &lt;-<span class="kw">chan</span> <span class="kw">string</span>) {
+    <span class="kw">select</span> {
+    <span class="kw">case</span> result := &lt;-ch:
+        <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Got result:"</span>, result)
+
+    <span class="kw">case</span> &lt;-time.<span class="fn">After</span>(<span class="num">500</span> * time.Millisecond):
+        <span class="cm">// time.After returns a channel that sends after the duration</span>
+        <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"⏱ Timeout! Service took too long."</span>)
+    }
+}</pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">👀</span>
+    <div class="callout-body">
+      <strong>Directional channel types</strong>
+      <p>Notice <code>chan&lt;- string</code> (send-only) and <code>&lt;-chan string</code> (receive-only) in the signatures above. These restrict what you can do with a channel parameter, making your intent explicit and catching mistakes at compile time. <code>chan string</code> is bidirectional and is what you create with <code>make()</code>.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §6 MUTEX — SHARED STATE -->
+  <h2><span class="section-num">§6</span> Mutex — When You Must Share State</h2>
+
+  <p>
+    Channels are great for passing data between goroutines. But sometimes multiple
+    goroutines need to access the <em>same</em> shared variable. Without coordination,
+    this causes a <strong>data race</strong> — unpredictable, hard-to-debug bugs.
+  </p>
+
+  <p>
+    A <code>sync.Mutex</code> is a mutual exclusion lock. Only one goroutine can hold it
+    at a time — others wait until it's released:
+  </p>
+
+  <div class="vs-block">
+    <div class="vs-side">
+      <div class="vs-label bad">❌ Data race — broken</div>
+      <pre style="padding:18px 20px; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--muted)"><span class="kw">var</span> counter <span class="kw">int</span>
+
+<span class="kw">for</span> i := <span class="num">0</span>; i < <span class="num">1000</span>; i++ {
+    <span class="kw">go</span> <span class="kw">func</span>() {
+        counter++ <span class="cm">// race! multiple</span>
+                  <span class="cm">// goroutines read+write</span>
+                  <span class="cm">// simultaneously</span>
+    }()
+}
+<span class="cm">// Final value: unpredictable</span></pre>
+    </div>
+    <div class="vs-side">
+      <div class="vs-label good">✅ Mutex — safe</div>
+      <pre style="padding:18px 20px; font-family:'JetBrains Mono',monospace; font-size:12.5px;"><span class="kw">var</span> (
+    counter <span class="kw">int</span>
+    mu      sync.Mutex
+)
+<span class="kw">for</span> i := <span class="num">0</span>; i < <span class="num">1000</span>; i++ {
+    <span class="kw">go</span> <span class="kw">func</span>() {
+        mu.<span class="fn">Lock</span>()
+        counter++
+        mu.<span class="fn">Unlock</span>()
+    }()
+}
+<span class="cm">// Final value: always 1000</span></pre>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-body">
+      <strong>Always defer Unlock()</strong>
+      <p>The idiomatic Go pattern is <code>mu.Lock(); defer mu.Unlock()</code> at the start of the protected section. <code>defer</code> guarantees the unlock happens even if the function panics or returns early — preventing a deadlock where every goroutine waits forever for a lock that's never released.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §7 PUTTING IT TOGETHER -->
+  <h2><span class="section-num">§7</span> Putting It All Together — Parallel Word Counter</h2>
+
+  <p>
+    Let's combine goroutines, WaitGroup, channels, and a Mutex in one real program —
+    a parallel word counter that processes multiple documents simultaneously:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">parallel_counter.go — type this and run it</span></div>
+    <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"fmt"</span>
+    <span class="str">"strings"</span>
+    <span class="str">"sync"</span>
+)
+
+<span class="kw">func</span> <span class="fn">countWords</span>(doc <span class="kw">string</span>, totals <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">int</span>, mu *sync.Mutex, wg *sync.WaitGroup) {
+    <span class="kw">defer</span> wg.<span class="fn">Done</span>()
+
+    words := strings.<span class="fn">Fields</span>(doc)   <span class="cm">// split on whitespace</span>
+    local := <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">int</span>{}       <span class="cm">// local count — no lock needed</span>
+
+    <span class="kw">for</span> _, word := <span class="kw">range</span> words {
+        word = strings.<span class="fn">ToLower</span>(strings.<span class="fn">Trim</span>(word, <span class="str">".,!?"</span>))
+        local[word]++
+    }
+
+    <span class="cm">// Merge local results into shared map — must lock</span>
+    mu.<span class="fn">Lock</span>()
+    <span class="kw">defer</span> mu.<span class="fn">Unlock</span>()
+    <span class="kw">for</span> word, count := <span class="kw">range</span> local {
+        totals[word] += count
+    }
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    documents := []<span class="kw">string</span>{
+        <span class="str">"Go is fast and Go is simple"</span>,
+        <span class="str">"Go has goroutines and Go is concurrent"</span>,
+        <span class="str">"Simple is better than fast but Go is both"</span>,
+    }
+
+    totals := <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">int</span>{}
+    <span class="kw">var</span> mu sync.Mutex
+    <span class="kw">var</span> wg sync.WaitGroup
+
+    <span class="kw">for</span> _, doc := <span class="kw">range</span> documents {
+        wg.<span class="fn">Add</span>(<span class="num">1</span>)
+        <span class="kw">go</span> <span class="fn">countWords</span>(doc, totals, &amp;mu, &amp;wg)
+    }
+
+    wg.<span class="fn">Wait</span>()
+
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Word frequencies:"</span>)
+    <span class="kw">for</span> word, count := <span class="kw">range</span> totals {
+        <span class="kw">if</span> count > <span class="num">1</span> {
+            <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"  %-12s %d\n"</span>, word, count)
+        }
+    }
+}</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">terminal</span><span class="code-label">expected output (order may vary)</span></div>
+    <pre><span class="out">Word frequencies:
+  go           4
+  is           5
+  and          2
+  simple       2
+  fast         2</span></pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- EXERCISE -->
+  <div class="exercise">
+    <h4>🛠 Try It Yourself</h4>
+    <p>
+      Write a function <code>parallelSquares</code> that takes a slice of ints,
+      launches one goroutine per number to compute its square, and returns a
+      <code>[]int</code> with all the squares in <em>any order</em>.
+    </p>
+    <p>
+      Use a buffered channel of size <code>len(numbers)</code> to collect results
+      (no WaitGroup needed — the channel does the synchronization).
+      After launching all goroutines, range over the channel to collect results.
+    </p>
+    <p>
+      Test with: <code>parallelSquares([]int{1, 2, 3, 4, 5})</code>
+    </p>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- CHECKPOINT -->
+  <div class="checkpoint">
+    <h4>✅ Module 08 Checkpoint</h4>
+    <ul>
+      <li>You understand what a goroutine is and how it differs from an OS thread</li>
+      <li>You can launch goroutines with the <code>go</code> keyword</li>
+      <li>You know why <code>main()</code> exits before goroutines and how to prevent it</li>
+      <li>You can use <code>sync.WaitGroup</code> with <code>Add</code>, <code>Done</code>, and <code>Wait</code></li>
+      <li>You know the loop closure bug and how to avoid it with parameter passing</li>
+      <li>You can create unbuffered and buffered channels with <code>make()</code></li>
+      <li>You understand the fan-out pattern for parallel work collection</li>
+      <li>You can use <code>select</code> to wait on multiple channels and implement timeouts</li>
+      <li>You know when to use channels vs when to use a <code>sync.Mutex</code></li>
+      <li>You always <code>defer mu.Unlock()</code> immediately after <code>mu.Lock()</code></li>
+    </ul>
+  </div>
+
+  <div class="callout callout-fun">
+    <span class="callout-icon">🔨</span>
+    <div class="callout-body">
+      <strong>Anas's Note</strong>
+      <p>Goroutines and channels are what make Go developers slightly smug at conferences. You just learned a concurrency model that most programmers spend years trying to get right in other languages. Two keywords. That's the whole thing. Next up: Packages &amp; Modules — the last theory piece before you build your final REST API capstone. Almost there. 🐹</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="prev-btn" href="M07.html">← M07: Structs &amp; Interfaces</a>
+  <a class="next-btn" href="M09.html">Next: M09 — Packages &amp; Modules →</a>
+</div>
+
+</body>
+</html>

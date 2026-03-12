@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gopher's Forge — A Weekend with Go</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0c12;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: #1e2330;
+    --go-blue: #00ACD7;
+    --go-teal: #00D7A0;
+    --amber: #F5A623;
+    --red: #FF6B6B;
+    --purple: #B48EF7;
+    --gold: #FFD700;
+    --text: #e8ecf5;
+    --muted: #7a859e;
+    --dim: #3a4055;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HERO STRIPE ── */
+  .hero-stripe { height: 3px; background: linear-gradient(90deg, var(--go-blue), var(--go-teal), var(--purple), var(--gold)); }
+
+  /* ── NAV ── */
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: rgba(10,12,18,0.96); backdrop-filter: blur(16px); z-index: 100;
+  }
+  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 17px; }
+  .brand span { color: var(--go-blue); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .progress-pill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 16px; border-radius: 999px;
+    background: rgba(0,215,160,0.08); border: 1px solid rgba(0,215,160,0.2);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-teal);
+  }
+  .progress-mini { width: 60px; height: 4px; background: rgba(0,215,160,0.15); border-radius: 999px; overflow: hidden; }
+  .progress-mini-fill { height: 100%; background: var(--go-teal); border-radius: 999px; transition: width 0.4s ease; }
+
+  /* ── HERO ── */
+  .hero { max-width: 900px; margin: 0 auto; padding: 72px 24px 56px; text-align: center; }
+  .hero-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-teal); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+  .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(42px, 7vw, 80px); font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; margin-bottom: 20px; }
+  .hero h1 .grad { background: linear-gradient(135deg, var(--go-blue), var(--go-teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-sub { font-family: 'Lora', serif; font-size: 19px; color: var(--muted); font-style: italic; max-width: 560px; margin: 0 auto 40px; line-height: 1.7; }
+
+  /* ── CONTINUE BUTTON ── */
+  .continue-bar {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    flex-wrap: wrap; margin-bottom: 0;
+  }
+  .btn-continue {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 28px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--go-blue), var(--go-teal));
+    color: var(--bg); font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .btn-continue:hover { opacity: 0.88; transform: translateY(-2px); }
+  .btn-reset {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 22px; border-radius: 10px;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    color: var(--muted); font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── STATS ── */
+  .stats-row { display: flex; justify-content: center; gap: 0; margin: 48px auto; max-width: 600px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--surface); }
+  .stat { flex: 1; padding: 20px; text-align: center; border-right: 1px solid var(--border); }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ── OVERALL PROGRESS ── */
+  .overall-progress { max-width: 600px; margin: 0 auto 56px; padding: 0 24px; }
+  .op-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .op-label { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--muted); }
+  .op-count { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--go-teal); }
+  .op-bar { height: 8px; background: rgba(0,215,160,0.1); border-radius: 999px; overflow: hidden; }
+  .op-fill { height: 100%; background: linear-gradient(90deg, var(--go-blue), var(--go-teal)); border-radius: 999px; transition: width 0.5s ease; }
+
+  /* ── DAY SECTIONS ── */
+  .curriculum { max-width: 900px; margin: 0 auto; padding: 0 24px 80px; }
+  .day-block { margin-bottom: 56px; }
+  .day-header {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .day-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+    padding: 5px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .day-tag.day1 { background: rgba(0,172,215,0.12); color: var(--go-blue); border: 1px solid rgba(0,172,215,0.25); }
+  .day-tag.day2 { background: rgba(0,215,160,0.12); color: var(--go-teal); border: 1px solid rgba(0,215,160,0.25); }
+  .day-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+  .day-meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  /* ── MODULE CARD ── */
+  .module-card {
+    display: flex; align-items: center; gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.15s;
+    text-decoration: none;
+    color: var(--text);
+    cursor: pointer;
+    position: relative;
+  }
+  .module-card:hover { border-color: rgba(0,172,215,0.35); transform: translateX(4px); }
+  .module-card.project { border-color: rgba(0,215,160,0.2); }
+  .module-card.project:hover { border-color: rgba(0,215,160,0.45); }
+  .module-card.capstone { border-color: rgba(180,142,247,0.25); }
+  .module-card.capstone:hover { border-color: rgba(180,142,247,0.5); }
+  .module-card.done { border-color: rgba(0,215,160,0.3); background: rgba(0,215,160,0.03); }
+
+  /* accent bar on left */
+  .module-card::before {
+    content: ''; width: 3px; height: 100%; flex-shrink: 0;
+    background: var(--border); transition: background 0.2s;
+  }
+  .module-card:hover::before { background: var(--go-blue); }
+  .module-card.project::before { background: rgba(0,215,160,0.3); }
+  .module-card.project:hover::before { background: var(--go-teal); }
+  .module-card.capstone::before { background: rgba(180,142,247,0.3); }
+  .module-card.capstone:hover::before { background: var(--purple); }
+  .module-card.done::before { background: var(--go-teal); }
+
+  .module-num {
+    width: 52px; padding: 0 14px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--dim); text-align: center; flex-shrink: 0;
+  }
+  .module-card.project .module-num  { color: rgba(0,215,160,0.4); }
+  .module-card.capstone .module-num { color: rgba(180,142,247,0.4); }
+
+  .module-body { flex: 1; padding: 16px 4px 16px 0; min-width: 0; }
+  .module-top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+  .module-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .module-type-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px;
+    border-radius: 5px; flex-shrink: 0;
+  }
+  .type-module   { background: rgba(0,172,215,0.1);  color: var(--go-blue);  border: 1px solid rgba(0,172,215,0.2); }
+  .type-project  { background: rgba(0,215,160,0.1);  color: var(--go-teal);  border: 1px solid rgba(0,215,160,0.2); }
+  .type-capstone { background: rgba(180,142,247,0.1); color: var(--purple);  border: 1px solid rgba(180,142,247,0.2); }
+  .module-desc { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .module-right { display: flex; align-items: center; gap: 16px; padding: 0 20px; flex-shrink: 0; }
+  .module-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim); white-space: nowrap; }
+
+  /* ── CHECKBOX ── */
+  .check-box {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 2px solid var(--border); background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.2s; cursor: pointer;
+    position: relative; z-index: 2;
+  }
+  .check-box:hover { border-color: var(--go-teal); }
+  .check-box.checked { background: var(--go-teal); border-color: var(--go-teal); }
+  .check-box svg { display: none; }
+  .check-box.checked svg { display: block; }
+
+  /* ── TAGS ── */
+  .module-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--dim); }
+
+  /* ── COMPLETION BANNER ── */
+  .completion-banner {
+    max-width: 900px; margin: 0 auto 56px; padding: 0 24px;
+    display: none;
+  }
+  .completion-banner.visible { display: block; }
+  .banner-inner {
+    background: linear-gradient(135deg, rgba(255,215,0,0.06), rgba(180,142,247,0.06), rgba(0,215,160,0.06));
+    border: 1px solid rgba(255,215,0,0.25);
+    border-radius: 16px; padding: 32px; text-align: center;
+  }
+  .banner-inner .b-icon { font-size: 48px; margin-bottom: 12px; }
+  .banner-inner h3 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, var(--gold), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .banner-inner p { font-family: 'Lora', serif; font-size: 16px; color: var(--muted); font-style: italic; }
+
+  /* ── FOOTER ── */
+  footer { border-top: 1px solid var(--border); padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; }
+  footer .brand { font-size: 14px; }
+  footer .copy { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { opacity: 0; animation: fadeUp 0.5s ease forwards; }
+
+  @media (max-width: 640px) {
+    .topnav { padding: 16px 20px; }
+    .hero { padding: 48px 20px 40px; }
+    .curriculum { padding: 0 20px 60px; }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(3) { border-top: 1px solid var(--border); border-right: 1px solid var(--border); }
+    .stat:nth-child(4) { border-top: 1px solid var(--border); }
+    .module-tags { display: none; }
+    .module-desc { display: none; }
+    footer { flex-direction: column; gap: 8px; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero-stripe"></div>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="brand">Gopher's <span>Forge</span></div>
+  <div class="nav-right">
+    <div class="progress-pill">
+      <div class="progress-mini"><div class="progress-mini-fill" id="navProgress"></div></div>
+      <span id="navLabel">0 / 13 done</span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero fade-up">
+  <div class="hero-eyebrow">Weekend Bootcamp · 12 Hours · 3 Real Projects</div>
+  <h1>Gopher's <span class="grad">Forge</span></h1>
+  <p class="hero-sub">A weekend with Go — zero to shipping a real REST API, built one module at a time with zero magic and maximum understanding.</p>
+  <div class="continue-bar">
+    <a class="btn-continue" id="continueBtn" href="M01-welcome-to-the-forge.html">
+      ▶ Start the Bootcamp
+    </a>
+    <button class="btn-reset" id="resetBtn" onclick="resetProgress()">↺ Reset Progress</button>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-row fade-up" style="animation-delay:0.1s">
+  <div class="stat">
+    <div class="stat-num" style="color:var(--go-blue)">10</div>
+    <div class="stat-label">Modules</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" style="color:var(--go-teal)">3</div>
+    <div class="stat-label">Projects</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" style="color:var(--amber)">12h</div>
+    <div class="stat-label">Total Time</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" style="color:var(--purple)">0</div>
+    <div class="stat-label">Dependencies</div>
+  </div>
+</div>
+
+<!-- OVERALL PROGRESS -->
+<div class="overall-progress fade-up" style="animation-delay:0.15s">
+  <div class="op-header">
+    <span class="op-label">OVERALL PROGRESS</span>
+    <span class="op-count" id="progressCount">0 of 13 completed</span>
+  </div>
+  <div class="op-bar"><div class="op-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<!-- COMPLETION BANNER -->
+<div class="completion-banner" id="completionBanner">
+  <div class="banner-inner">
+    <div class="b-icon">🎓</div>
+    <h3>Bootcamp Complete. You're a Gopher.</h3>
+    <p>All 13 modules done. The Forge has forged. Now go build something real. 🔨</p>
+  </div>
+</div>
+
+<!-- CURRICULUM -->
+<div class="curriculum">
+
+  <!-- DAY 1 -->
+  <div class="day-block fade-up" style="animation-delay:0.2s">
+    <div class="day-header">
+      <span class="day-tag day1">Day 1</span>
+      <span class="day-title">The Foundations</span>
+      <span class="day-meta">6 hours · 6 modules · 1 project</span>
+    </div>
+
+    <!-- M01 -->
+    <div class="module-card" onclick="navigate('M01-welcome-to-the-forge.html', event)">
+      <div class="module-num">M01</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Welcome to the Forge</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">Why Go exists, Go's philosophy, where it shines — and a peek at what you'll build this weekend.</div>
+        <div class="module-tags">
+          <span class="tag">history</span><span class="tag">philosophy</span><span class="tag">overview</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">30 min</span>
+        <div class="check-box" id="check-M01" onclick="toggleDone('M01', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- M02 -->
+    <div class="module-card" onclick="navigate('M02-setup-and-hello-gopher.html', event)">
+      <div class="module-num">M02</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Setup &amp; Hello, Gopher!</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">Install Go, set up VS Code, write and run your first program, meet go fmt.</div>
+        <div class="module-tags">
+          <span class="tag">installation</span><span class="tag">go mod</span><span class="tag">hello world</span><span class="tag">toolchain</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">30 min</span>
+        <div class="check-box" id="check-M02" onclick="toggleDone('M02', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- M03 -->
+    <div class="module-card" onclick="navigate('M03-variables-types-constants.html', event)">
+      <div class="module-num">M03</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Variables, Types &amp; Constants</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">Three declaration styles, zero values, type safety, explicit conversion, iota, blank identifier.</div>
+        <div class="module-tags">
+          <span class="tag">var</span><span class="tag">:=</span><span class="tag">types</span><span class="tag">constants</span><span class="tag">iota</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">1 hour</span>
+        <div class="check-box" id="check-M03" onclick="toggleDone('M03', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- M04 -->
+    <div class="module-card" onclick="navigate('M04-control-flow.html', event)">
+      <div class="module-num">M04</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Control Flow</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">for loops (4 variants), if/else with initializers, switch without fallthrough, defer and LIFO stacking.</div>
+        <div class="module-tags">
+          <span class="tag">for</span><span class="tag">if/else</span><span class="tag">switch</span><span class="tag">defer</span><span class="tag">range</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">1 hour</span>
+        <div class="check-box" id="check-M04" onclick="toggleDone('M04', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- M05 -->
+    <div class="module-card" onclick="navigate('M05-functions-and-error-handling.html', event)">
+      <div class="module-num">M05</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Functions &amp; Error Handling</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">Multiple returns, named returns, error type, closures, variadic functions, first-class functions.</div>
+        <div class="module-tags">
+          <span class="tag">functions</span><span class="tag">error</span><span class="tag">closures</span><span class="tag">variadic</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">1 hour</span>
+        <div class="check-box" id="check-M05" onclick="toggleDone('M05', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- M06 -->
+    <div class="module-card" onclick="navigate('M06-arrays-slices-maps.html', event)">
+      <div class="module-num">M06</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Arrays, Slices &amp; Maps</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">Slice internals (ptr/len/cap), shared array trap, copy(), map patterns, comma-ok, grade tracker project.</div>
+        <div class="module-tags">
+          <span class="tag">slices</span><span class="tag">maps</span><span class="tag">append</span><span class="tag">make</span><span class="tag">copy</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">1 hour</span>
+        <div class="check-box" id="check-M06" onclick="toggleDone('M06', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- P01 -->
+    <div class="module-card project" onclick="navigate('P01-cli-task-manager.html', event)">
+      <div class="module-num" style="color:rgba(0,215,160,0.5)">P01</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">🔨 Project #1 — CLI Task Manager</span>
+          <span class="module-type-badge type-project">PROJECT</span>
+        </div>
+        <div class="module-desc">Build a real command-line task manager from scratch. Add, complete, delete — all Day 1 concepts in one program.</div>
+        <div class="module-tags">
+          <span class="tag">slices</span><span class="tag">functions</span><span class="tag">os.Args</span><span class="tag">error handling</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">1 hour</span>
+        <div class="check-box" id="check-P01" onclick="toggleDone('P01', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /day-block -->
+
+  <!-- DAY 2 -->
+  <div class="day-block fade-up" style="animation-delay:0.25s">
+    <div class="day-header">
+      <span class="day-tag day2">Day 2</span>
+      <span class="day-title">The Real World</span>
+      <span class="day-meta">6 hours · 4 modules · 2 projects · 1 capstone</span>
+    </div>
+
+    <!-- M07 -->
+    <div class="module-card" onclick="navigate('M07-structs-and-interfaces.html', event)">
+      <div class="module-num">M07</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Structs &amp; Interfaces</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">Methods, pointer vs value receivers, implicit interface satisfaction, embedding, type assertions, type switch.</div>
+        <div class="module-tags">
+          <span class="tag">structs</span><span class="tag">interfaces</span><span class="tag">methods</span><span class="tag">embedding</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">1 hour</span>
+        <div class="check-box" id="check-M07" onclick="toggleDone('M07', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- M08 -->
+    <div class="module-card" onclick="navigate('M08-goroutines-and-channels.html', event)">
+      <div class="module-num">M08</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Goroutines &amp; Channels</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">Go's concurrency model, WaitGroup, buffered channels, fan-out pattern, select, Mutex, data races.</div>
+        <div class="module-tags">
+          <span class="tag">goroutines</span><span class="tag">channels</span><span class="tag">WaitGroup</span><span class="tag">select</span><span class="tag">Mutex</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">1 hour</span>
+        <div class="check-box" id="check-M08" onclick="toggleDone('M08', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- M09 -->
+    <div class="module-card" onclick="navigate('M09-packages-and-modules.html', event)">
+      <div class="module-num">M09</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Packages &amp; Modules</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">Visibility rules, go.mod anatomy, local packages, go get, stdlib tour, five package design rules.</div>
+        <div class="module-tags">
+          <span class="tag">packages</span><span class="tag">go.mod</span><span class="tag">visibility</span><span class="tag">stdlib</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">30 min</span>
+        <div class="check-box" id="check-M09" onclick="toggleDone('M09', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- P02 -->
+    <div class="module-card project" onclick="navigate('P02-concurrent-web-scraper.html', event)">
+      <div class="module-num" style="color:rgba(0,215,160,0.5)">P02</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">🕷️ Project #2 — Concurrent Web Scraper</span>
+          <span class="module-type-badge type-project">PROJECT</span>
+        </div>
+        <div class="module-desc">Scrape 6 live sites in parallel. Extract titles, count words, handle failures per-URL, print a sorted timing report.</div>
+        <div class="module-tags">
+          <span class="tag">goroutines</span><span class="tag">channels</span><span class="tag">net/http</span><span class="tag">sort.Slice</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">45 min</span>
+        <div class="check-box" id="check-P02" onclick="toggleDone('P02', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- M10 -->
+    <div class="module-card" onclick="navigate('M10-rest-apis-net-http.html', event)">
+      <div class="module-num">M10</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Building REST APIs with net/http</span>
+          <span class="module-type-badge type-module">MODULE</span>
+        </div>
+        <div class="module-desc">http.Handler interface, struct tags, JSON encoding, Go 1.22 routing, full CRUD API, middleware pattern.</div>
+        <div class="module-tags">
+          <span class="tag">net/http</span><span class="tag">JSON</span><span class="tag">routing</span><span class="tag">middleware</span><span class="tag">status codes</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">1.5 hours</span>
+        <div class="check-box" id="check-M10" onclick="toggleDone('M10', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAPSTONE -->
+    <div class="module-card capstone" onclick="navigate('CAPSTONE-url-shortener.html', event)">
+      <div class="module-num" style="color:rgba(180,142,247,0.5)">🏆</div>
+      <div class="module-body">
+        <div class="module-top">
+          <span class="module-title">Capstone — URL Shortener API</span>
+          <span class="module-type-badge type-capstone">CAPSTONE</span>
+        </div>
+        <div class="module-desc">4-file production architecture. Shorten URLs, redirect, count clicks, log requests, CORS, clean JSON errors. Ship it.</div>
+        <div class="module-tags">
+          <span class="tag">REST API</span><span class="tag">JSON</span><span class="tag">RWMutex</span><span class="tag">middleware</span><span class="tag">CORS</span><span class="tag">everything</span>
+        </div>
+      </div>
+      <div class="module-right">
+        <span class="module-time">1.5 hours</span>
+        <div class="check-box" id="check-CAP" onclick="toggleDone('CAP', event)">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1" stroke="#0a0c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /day-block -->
+
+</div><!-- /curriculum -->
+
+<!-- COMPLETION BANNER -->
+<div class="completion-banner" id="completionBanner">
+  <div class="banner-inner">
+    <div class="b-icon">🎓</div>
+    <h3>Bootcamp Complete. You're a Gopher.</h3>
+    <p>All 13 modules done. The Forge has forged. Now go build something real. 🔨</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="brand">Gopher's <span style="color:var(--go-blue)">Forge</span></div>
+  <div class="copy">A Weekend with Go · Nextera Education · Built with 🔨</div>
+</footer>
+
+<script>
+  // ── Module order for "continue" logic ──
+  const MODULE_ORDER = [
+    { id: 'M01', file: 'M01-welcome-to-the-forge.html' },
+    { id: 'M02', file: 'M02-setup-and-hello-gopher.html' },
+    { id: 'M03', file: 'M03-variables-types-constants.html' },
+    { id: 'M04', file: 'M04-control-flow.html' },
+    { id: 'M05', file: 'M05-functions-and-error-handling.html' },
+    { id: 'M06', file: 'M06-arrays-slices-maps.html' },
+    { id: 'P01', file: 'P01-cli-task-manager.html' },
+    { id: 'M07', file: 'M07-structs-and-interfaces.html' },
+    { id: 'M08', file: 'M08-goroutines-and-channels.html' },
+    { id: 'M09', file: 'M09-packages-and-modules.html' },
+    { id: 'P02', file: 'P02-concurrent-web-scraper.html' },
+    { id: 'M10', file: 'M10-rest-apis-net-http.html' },
+    { id: 'CAP', file: 'CAPSTONE-url-shortener.html' },
+  ];
+  const TOTAL = MODULE_ORDER.length;
+
+  // ── Load progress from localStorage ──
+  function getProgress() {
+    try { return JSON.parse(localStorage.getItem('forge-progress') || '{}'); } catch { return {}; }
+  }
+
+  function saveProgress(p) {
+    localStorage.setItem('forge-progress', JSON.stringify(p));
+  }
+
+  // ── Toggle a module done/undone ──
+  function toggleDone(id, event) {
+    event.stopPropagation(); // don't navigate when clicking checkbox
+    const p = getProgress();
+    p[id] = !p[id];
+    saveProgress(p);
+    render();
+  }
+
+  // ── Navigate to module ──
+  function navigate(file, event) {
+    if (event.target.closest('.check-box')) return; // checkbox click — don't navigate
+    window.location.href = file;
+  }
+
+  // ── Reset all progress ──
+  function resetProgress() {
+    if (confirm('Reset all progress? This can\'t be undone.')) {
+      localStorage.removeItem('forge-progress');
+      render();
+    }
+  }
+
+  // ── Render progress state ──
+  function render() {
+    const p = getProgress();
+    let done = 0;
+
+    MODULE_ORDER.forEach(({ id }) => {
+      const box = document.getElementById('check-' + id);
+      const card = box?.closest('.module-card');
+      if (!box) return;
+      if (p[id]) {
+        box.classList.add('checked');
+        card?.classList.add('done');
+        done++;
+      } else {
+        box.classList.remove('checked');
+        card?.classList.remove('done');
+      }
+    });
+
+    // Progress bar
+    const pct = Math.round((done / TOTAL) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = `${done} of ${TOTAL} completed`;
+    document.getElementById('navProgress').style.width = pct + '%';
+    document.getElementById('navLabel').textContent = `${done} / ${TOTAL} done`;
+
+    // Continue button
+    const continueBtn = document.getElementById('continueBtn');
+    const nextModule = MODULE_ORDER.find(m => !p[m.id]);
+    if (nextModule) {
+      continueBtn.href = nextModule.file;
+      const idx = MODULE_ORDER.indexOf(nextModule);
+      continueBtn.textContent = idx === 0 ? '▶ Start the Bootcamp' : `▶ Continue — ${nextModule.id}`;
+    } else {
+      continueBtn.textContent = '🎓 Bootcamp Complete!';
+      continueBtn.href = '#';
+    }
+
+    // Completion banner
+    const banner = document.getElementById('completionBanner');
+    if (done === TOTAL) {
+      banner.classList.add('visible');
+      banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      banner.classList.remove('visible');
+    }
+  }
+
+  // ── Init ──
+  render();
+</script>
+</body>
+</html>

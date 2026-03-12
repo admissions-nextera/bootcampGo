@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M09 — Packages & Modules | Gopher's Forge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --go-blue: #00ACD7;
+    --go-teal: #00D7A0;
+    --amber: #F5A623;
+    --red: #FF6B6B;
+    --purple: #B48EF7;
+    --text: #e8ecf5;
+    --muted: #7a859e;
+    --body-max: 760px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(12px); z-index: 100;
+  }
+  .topnav .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--text); }
+  .topnav .brand span { color: var(--go-blue); }
+  .module-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 14px; background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.25); border-radius: 999px; color: var(--go-blue); }
+  .time-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ── HEADER ── */
+  .lesson-header { max-width: var(--body-max); margin: 0 auto; padding: 72px 24px 48px; }
+  .lesson-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-teal); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+  .lesson-title { font-family: 'Syne', sans-serif; font-size: clamp(36px, 6vw, 60px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 20px; }
+  .lesson-title .accent { color: var(--go-blue); }
+  .lesson-intro { font-size: 20px; color: var(--muted); line-height: 1.7; font-style: italic; border-left: 3px solid var(--go-blue); padding-left: 20px; margin-top: 28px; }
+  .lesson-meta { display: flex; gap: 24px; margin-top: 32px; flex-wrap: wrap; }
+  .meta-item { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted); }
+  .meta-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--go-teal); flex-shrink: 0; }
+
+  /* ── BODY ── */
+  .lesson-body { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* ── TYPOGRAPHY ── */
+  h2 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin-top: 56px; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; gap: 12px; }
+  h2 .section-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-blue); background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.2); border-radius: 6px; padding: 3px 9px; font-weight: 400; }
+  h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-top: 40px; margin-bottom: 12px; color: var(--text); }
+  p { margin-bottom: 20px; }
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--go-teal); font-style: italic; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: rgba(0,172,215,0.1); color: var(--go-blue); padding: 2px 7px; border-radius: 5px; }
+
+  /* ── CALLOUTS ── */
+  .callout { border-radius: 12px; padding: 20px 24px; margin: 32px 0; display: flex; gap: 16px; align-items: flex-start; }
+  .callout-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; font-family: 'Syne', sans-serif; font-size: 15px; margin-bottom: 6px; }
+  .callout-body p { margin: 0; font-size: 15px; line-height: 1.7; }
+  .callout-info   { background: rgba(0,172,215,0.07);  border: 1px solid rgba(0,172,215,0.2); }
+  .callout-info   .callout-body p, .callout-info   .callout-body strong { color: var(--go-blue); }
+  .callout-tip    { background: rgba(0,215,160,0.07);  border: 1px solid rgba(0,215,160,0.2); }
+  .callout-tip    .callout-body p, .callout-tip    .callout-body strong { color: var(--go-teal); }
+  .callout-fun    { background: rgba(245,166,35,0.07); border: 1px solid rgba(245,166,35,0.2); }
+  .callout-fun    .callout-body p, .callout-fun    .callout-body strong { color: var(--amber); }
+  .callout-warn   { background: rgba(255,107,107,0.07); border: 1px solid rgba(255,107,107,0.2); }
+  .callout-warn   .callout-body p, .callout-warn   .callout-body strong { color: var(--red); }
+  .callout-purple { background: rgba(180,142,247,0.07); border: 1px solid rgba(180,142,247,0.25); }
+  .callout-purple .callout-body p, .callout-purple .callout-body strong { color: var(--purple); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 28px 0; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-lang  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--go-blue); letter-spacing: 0.1em; text-transform: uppercase; }
+  .code-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  pre { padding: 24px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.7; }
+  .kw  { color: #569cd6; }
+  .fn  { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .cm  { color: #6a9955; font-style: italic; }
+  .pk  { color: #4ec9b0; }
+  .num { color: #b5cea8; }
+  .out { color: var(--muted); }
+  .err { color: var(--red); }
+  .prompt { color: var(--go-teal); user-select: none; }
+
+  /* ── ANNOTATED CODE ── */
+  .annotated-code {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin: 28px 0;
+    width: min(960px, 92vw); margin-left: 50%; transform: translateX(-50%);
+  }
+  .ann-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .ann-header span { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .ann-header .lang { color: var(--go-blue); text-transform: uppercase; letter-spacing: 0.1em; }
+  .ann-header .fname { color: var(--muted); }
+  .ann-line { display: grid; grid-template-columns: 1fr 320px; border-bottom: 1px solid rgba(37,42,56,0.5); }
+  .ann-line:last-child { border-bottom: none; }
+  .ann-code { padding: 12px 24px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.6; border-right: 1px solid var(--border); white-space: pre; overflow-x: auto; }
+  .ann-note { padding: 12px 18px; font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.55; display: flex; align-items: center; background: rgba(255,255,255,0.015); word-break: break-word; }
+  .ann-note.highlight { color: var(--go-teal); background: rgba(0,215,160,0.04); }
+  .ann-note.warn      { color: var(--amber);   background: rgba(245,166,35,0.04); }
+  .ann-note.info      { color: var(--go-blue);  background: rgba(0,172,215,0.04); }
+
+  /* ── FILE TREE ── */
+  .file-tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 28px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 2;
+  }
+  .ft-root  { color: var(--go-blue); font-weight: 700; }
+  .ft-dir   { color: var(--amber); }
+  .ft-file  { color: var(--text); }
+  .ft-go    { color: var(--go-teal); }
+  .ft-mod   { color: var(--purple); }
+  .ft-sum   { color: var(--muted); }
+  .ft-note  { color: var(--muted); font-style: italic; font-size: 12px; }
+  .ft-indent1 { padding-left: 20px; }
+  .ft-indent2 { padding-left: 40px; }
+  .ft-indent3 { padding-left: 60px; }
+
+  /* ── VISIBILITY TABLE ── */
+  .vis-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+  .vis-table th { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 18px; text-align: left; background: var(--surface2); border: 1px solid var(--border); color: var(--go-blue); }
+  .vis-table td { padding: 10px 18px; border: 1px solid var(--border); font-family: 'Inter', sans-serif; vertical-align: middle; line-height: 1.5; font-size: 14px; }
+  .vis-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  .vis-table td code { font-size: 13px; }
+  .vis-table .yes { color: var(--go-teal); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .vis-table .no  { color: var(--red);     font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .vis-table .example { color: var(--go-teal); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .vis-table .counter { color: var(--red);    font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+  /* ── COMMAND TABLE ── */
+  .cmd-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+  .cmd-table th { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 18px; text-align: left; background: var(--surface2); border: 1px solid var(--border); color: var(--go-blue); }
+  .cmd-table td { padding: 10px 18px; border: 1px solid var(--border); font-family: 'Inter', sans-serif; vertical-align: top; line-height: 1.5; font-size: 14px; }
+  .cmd-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  .cmd-table td code { font-size: 12px; }
+  .cmd-table td.cmd { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--go-teal); white-space: nowrap; }
+
+  /* ── STDLIB GRID ── */
+  .stdlib-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+  .stdlib-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .stdlib-card h5 { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--go-blue); margin-bottom: 6px; }
+  .stdlib-card p  { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; }
+  .stdlib-card .ex { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-teal); margin-top: 6px; display: block; }
+
+  /* ── EXERCISE ── */
+  .exercise { border: 1px solid rgba(245,166,35,0.3); background: rgba(245,166,35,0.04); border-radius: 12px; padding: 24px 28px; margin: 36px 0; }
+  .exercise h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--amber); margin-bottom: 12px; }
+  .exercise p  { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); margin-bottom: 12px; line-height: 1.6; }
+  .exercise p:last-child { margin-bottom: 0; }
+
+  /* ── CHECKPOINT ── */
+  .checkpoint { background: rgba(0,215,160,0.06); border: 1px solid rgba(0,215,160,0.25); border-radius: 12px; padding: 24px 28px; margin: 40px 0; }
+  .checkpoint h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--go-teal); margin-bottom: 12px; }
+  .checkpoint ul { list-style: none; padding: 0; }
+  .checkpoint ul li { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); padding: 6px 0; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+  .checkpoint ul li::before { content: '✓'; color: var(--go-teal); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── PROJECT TEASER ── */
+  .project-teaser {
+    background: linear-gradient(135deg, rgba(0,172,215,0.08), rgba(0,215,160,0.08));
+    border: 1px solid rgba(0,215,160,0.3);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 40px 0;
+    text-align: center;
+  }
+  .project-teaser .proj-icon { font-size: 48px; margin-bottom: 16px; }
+  .project-teaser h3 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 10px; color: var(--go-teal); }
+  .project-teaser p  { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--muted); max-width: 480px; margin: 0 auto 20px; line-height: 1.6; }
+  .project-teaser .proj-badge { display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 8px 20px; border-radius: 999px; background: rgba(0,215,160,0.15); color: var(--go-teal); border: 1px solid rgba(0,215,160,0.3); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; display: flex; justify-content: space-between; }
+  .prev-btn, .next-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; text-decoration: none; transition: opacity 0.2s; }
+  .prev-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .next-btn { background: var(--go-blue); color: #fff; }
+  .prev-btn:hover, .next-btn:hover { opacity: 0.85; }
+
+  @media (max-width: 700px) {
+    .topnav { padding: 16px 20px; }
+    .lesson-header, .lesson-body { padding-left: 20px; padding-right: 20px; }
+    .stdlib-grid { grid-template-columns: 1fr; }
+    .ann-note { display: none; }
+    .ann-line { grid-template-columns: 1fr; }
+    .ann-code { border-right: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="brand">Gopher's <span>Forge</span></div>
+  <span class="module-badge">M09</span>
+  <span class="time-badge">⏱ 30 min</span>
+</nav>
+
+<!-- HEADER -->
+<header class="lesson-header">
+  <div class="lesson-eyebrow">Day 2 · Module 09 · Project Structure</div>
+  <h1 class="lesson-title">Packages &amp;<br/><span class="accent">Modules</span></h1>
+  <p class="lesson-intro">
+    Every Go file you've written so far has lived in one folder and said
+    <code>package main</code>. That's fine for small programs — but real software
+    is organized into packages. This module shows you how Go thinks about code
+    organization, visibility, and dependency management. Short module, big payoff.
+  </p>
+  <div class="lesson-meta">
+    <div class="meta-item"><span class="dot"></span> Day 2 of 2</div>
+    <div class="meta-item"><span class="dot"></span> 30 minutes</div>
+    <div class="meta-item"><span class="dot"></span> packages · visibility · go.mod · stdlib</div>
+  </div>
+</header>
+
+<main class="lesson-body">
+
+  <hr class="divider"/>
+
+  <!-- §1 PACKAGES -->
+  <h2><span class="section-num">§1</span> Packages — The Unit of Code Organization</h2>
+
+  <p>
+    A <strong>package</strong> is a directory of <code>.go</code> files that all share
+    the same <code>package name</code> declaration at the top. Every Go file belongs
+    to exactly one package. Packages serve two purposes: they organize your code
+    into logical units, and they control what's visible to the outside world.
+  </p>
+
+  <p>
+    You've been using packages since day one. Every time you write
+    <code>fmt.Println</code>, you're calling the <code>Println</code> function
+    from the <code>fmt</code> package. <code>fmt</code>, <code>os</code>,
+    <code>strconv</code>, <code>sync</code> — these are all packages from Go's
+    standard library, and they work exactly the same way yours will.
+  </p>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">📦</span>
+    <div class="callout-body">
+      <strong>Package name vs import path</strong>
+      <p>The <code>package</code> declaration and the import path are two different things. <code>package mathutils</code> is the name you use inside code. <code>"github.com/anas/forge/mathutils"</code> is the import path — the unique identifier used to find the package. The last segment of the import path is usually (but not always) the package name.</p>
+    </div>
+  </div>
+
+  <h3>Your First Multi-Package Project</h3>
+  <p>
+    Let's build a small project with two packages — a <code>mathutils</code> package
+    and a <code>main</code> package that uses it. Here's what the folder structure looks like:
+  </p>
+
+  <div class="file-tree">
+    <div><span class="ft-root">forge-app/</span></div>
+    <div class="ft-indent1"><span class="ft-mod">go.mod</span> <span class="ft-note">← module definition</span></div>
+    <div class="ft-indent1"><span class="ft-go">main.go</span> <span class="ft-note">← package main</span></div>
+    <div class="ft-indent1"><span class="ft-dir">mathutils/</span></div>
+    <div class="ft-indent2"><span class="ft-go">mathutils.go</span> <span class="ft-note">← package mathutils</span></div>
+    <div class="ft-indent1"><span class="ft-dir">stringutils/</span></div>
+    <div class="ft-indent2"><span class="ft-go">stringutils.go</span> <span class="ft-note">← package stringutils</span></div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">terminal</span><span class="code-label">set it up</span></div>
+    <pre><span class="prompt">$</span> mkdir forge-app && cd forge-app
+<span class="prompt">$</span> go mod init github.com/anas/forge-app
+<span class="prompt">$</span> mkdir mathutils stringutils
+<span class="prompt">$</span> touch main.go mathutils/mathutils.go stringutils/stringutils.go</pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §2 EXPORTED VS UNEXPORTED -->
+  <h2><span class="section-num">§2</span> Exported vs Unexported — Visibility by Convention</h2>
+
+  <p>
+    Go's visibility rule is beautifully simple: <strong>if a name starts with a capital
+    letter, it's exported (public). If it starts with a lowercase letter, it's
+    unexported (private).</strong> No <code>public</code> or <code>private</code>
+    keywords. Just case.
+  </p>
+
+  <table class="vis-table">
+    <thead>
+      <tr><th>Name</th><th>Exported?</th><th>Accessible from other packages?</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="example">Add</span></td>
+        <td class="yes">✓ Yes</td>
+        <td>Yes — capital A</td>
+      </tr>
+      <tr>
+        <td><span class="counter">add</span></td>
+        <td class="no">✗ No</td>
+        <td>No — lowercase a, package-private</td>
+      </tr>
+      <tr>
+        <td><span class="example">User</span></td>
+        <td class="yes">✓ Yes</td>
+        <td>Yes — capital U</td>
+      </tr>
+      <tr>
+        <td><span class="counter">userCache</span></td>
+        <td class="no">✗ No</td>
+        <td>No — lowercase u, internal implementation detail</td>
+      </tr>
+      <tr>
+        <td><span class="example">ErrNotFound</span></td>
+        <td class="yes">✓ Yes</td>
+        <td>Yes — exported sentinel error, consumers can check against it</td>
+      </tr>
+      <tr>
+        <td><span class="counter">errNotFound</span></td>
+        <td class="no">✗ No</td>
+        <td>No — internal error, nobody outside the package sees it</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    This applies to everything — functions, types, struct fields, variables, constants,
+    and methods. It's enforced by the compiler. Try to access an unexported name from
+    another package and you get a compile error. No runtime surprises.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">mathutils/mathutils.go</span></div>
+    <pre><span class="kw">package</span> mathutils
+
+<span class="kw">import</span> <span class="str">"errors"</span>
+
+<span class="cm">// Exported error — consumers can compare against this</span>
+<span class="kw">var</span> ErrDivisionByZero = errors.<span class="fn">New</span>(<span class="str">"division by zero"</span>)
+
+<span class="cm">// Add is exported — capital A. Usable from any package.</span>
+<span class="kw">func</span> <span class="fn">Add</span>(a, b <span class="kw">int</span>) <span class="kw">int</span> { <span class="kw">return</span> a + b }
+
+<span class="cm">// Divide is exported with proper error handling</span>
+<span class="kw">func</span> <span class="fn">Divide</span>(a, b <span class="kw">float64</span>) (<span class="kw">float64</span>, <span class="kw">error</span>) {
+    <span class="kw">if</span> b == <span class="num">0</span> {
+        <span class="kw">return</span> <span class="num">0</span>, ErrDivisionByZero
+    }
+    <span class="kw">return</span> a / b, <span class="kw">nil</span>
+}
+
+<span class="cm">// Average is exported</span>
+<span class="kw">func</span> <span class="fn">Average</span>(nums []<span class="kw">float64</span>) <span class="kw">float64</span> {
+    <span class="kw">if</span> len(nums) == <span class="num">0</span> { <span class="kw">return</span> <span class="num">0</span> }
+    total := <span class="num">0.0</span>
+    <span class="kw">for</span> _, n := <span class="kw">range</span> nums { total += n }
+    <span class="kw">return</span> total / <span class="kw">float64</span>(len(nums))
+}
+
+<span class="cm">// clamp is unexported — internal helper, not part of the public API</span>
+<span class="kw">func</span> <span class="fn">clamp</span>(val, min, max <span class="kw">float64</span>) <span class="kw">float64</span> {
+    <span class="kw">if</span> val < min { <span class="kw">return</span> min }
+    <span class="kw">if</span> val > max { <span class="kw">return</span> max }
+    <span class="kw">return</span> val
+}</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">stringutils/stringutils.go</span></div>
+    <pre><span class="kw">package</span> stringutils
+
+<span class="kw">import</span> <span class="str">"strings"</span>
+
+<span class="cm">// Truncate shortens a string to maxLen, appending "..." if cut</span>
+<span class="kw">func</span> <span class="fn">Truncate</span>(s <span class="kw">string</span>, maxLen <span class="kw">int</span>) <span class="kw">string</span> {
+    <span class="kw">if</span> len(s) <= maxLen { <span class="kw">return</span> s }
+    <span class="kw">return</span> s[:maxLen] + <span class="str">"..."</span>
+}
+
+<span class="cm">// Slugify converts a string to a URL-safe slug</span>
+<span class="kw">func</span> <span class="fn">Slugify</span>(s <span class="kw">string</span>) <span class="kw">string</span> {
+    s = strings.<span class="fn">ToLower</span>(s)
+    s = strings.<span class="fn">ReplaceAll</span>(s, <span class="str">" "</span>, <span class="str">"-"</span>)
+    <span class="kw">return</span> s
+}
+
+<span class="cm">// IsPalindrome checks if a string reads the same forwards and backwards</span>
+<span class="kw">func</span> <span class="fn">IsPalindrome</span>(s <span class="kw">string</span>) <span class="kw">bool</span> {
+    s = strings.<span class="fn">ToLower</span>(s)
+    runes := []<span class="kw">rune</span>(s)
+    <span class="kw">for</span> i, j := <span class="num">0</span>, len(runes)-<span class="num">1</span>; i < j; i, j = i+<span class="num">1</span>, j-<span class="num">1</span> {
+        <span class="kw">if</span> runes[i] != runes[j] { <span class="kw">return</span> <span class="kw">false</span> }
+    }
+    <span class="kw">return</span> <span class="kw">true</span>
+}</pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §3 IMPORTING YOUR OWN PACKAGES -->
+  <h2><span class="section-num">§3</span> Importing Your Own Packages</h2>
+
+  <p>
+    To use a package you've written, import it using the full module path — the module
+    name from <code>go.mod</code> + the subdirectory. Then call its exported names
+    using the <code>packagename.FunctionName()</code> syntax:
+  </p>
+
+  <div class="annotated-code">
+    <div class="ann-header">
+      <span class="lang">Go</span>
+      <span class="fname">main.go — importing and using local packages</span>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">package</span> main</div>
+      <div class="ann-note">main.go must be package main — this is the entry point.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">import</span> (</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="str">"fmt"</span></div>
+      <div class="ann-note">Standard library package — no path prefix needed.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="str">"github.com/anas/forge-app/mathutils"</span></div>
+      <div class="ann-note highlight">Your local package. Path = module name + subdirectory name.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="str">"github.com/anas/forge-app/stringutils"</span></div>
+      <div class="ann-note highlight">Another local package. Go finds it in the stringutils/ folder.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">)</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> <span class="fn">main</span>() {</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    sum := mathutils.<span class="fn">Add</span>(<span class="num">10</span>, <span class="num">20</span>)</div>
+      <div class="ann-note highlight">Call exported function using packagename.FunctionName syntax.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="pk">fmt</span>.<span class="fn">Println</span>(sum)  <span class="cm">// 30</span></div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    result, err := mathutils.<span class="fn">Divide</span>(<span class="num">10</span>, <span class="num">0</span>)</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="kw">if</span> err != <span class="kw">nil</span> {</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">        <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Error:"</span>, err)</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    }</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    _ = result</div>
+      <div class="ann-note warn">Use _ to discard unused variables — the compiler requires it.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    slug := stringutils.<span class="fn">Slugify</span>(<span class="str">"Hello World"</span>)</div>
+      <div class="ann-note highlight">Using the stringutils package — fully qualified name.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="pk">fmt</span>.<span class="fn">Println</span>(slug)  <span class="cm">// hello-world</span></div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">}</div>
+      <div class="ann-note"> </div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §4 GO.MOD & EXTERNAL DEPENDENCIES -->
+  <h2><span class="section-num">§4</span> go.mod — Your Module's Identity Card</h2>
+
+  <p>
+    The <code>go.mod</code> file defines your module. It was created when you ran
+    <code>go mod init</code> and it's the thing that makes your project a proper
+    Go module — not just a folder with some files in it.
+  </p>
+
+  <div class="annotated-code">
+    <div class="ann-header">
+      <span class="lang">Go Module</span>
+      <span class="fname">go.mod — annotated</span>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">module</span> github.com/anas/forge-app</div>
+      <div class="ann-note highlight">The module path — the unique name of this module. Used as the prefix for all import paths within this project.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">go</span> 1.22</div>
+      <div class="ann-note highlight">The minimum Go version this module requires. Go is backward compatible, so this is rarely a problem.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">require</span> (</div>
+      <div class="ann-note">External dependencies appear here after go get.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    github.com/some/library v1.2.3</div>
+      <div class="ann-note highlight">Each dependency is pinned to an exact version. go.sum stores cryptographic hashes to verify integrity.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">)</div>
+      <div class="ann-note"> </div>
+    </div>
+  </div>
+
+  <h3>The Essential go Commands</h3>
+
+  <table class="cmd-table">
+    <thead>
+      <tr><th>Command</th><th>What it does</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="cmd">go mod init &lt;path&gt;</td>
+        <td>Create a new module. Run once per project.</td>
+      </tr>
+      <tr>
+        <td class="cmd">go get &lt;package&gt;</td>
+        <td>Add an external dependency. Updates go.mod and go.sum automatically.</td>
+      </tr>
+      <tr>
+        <td class="cmd">go mod tidy</td>
+        <td>Remove unused deps, add missing ones. Run before committing.</td>
+      </tr>
+      <tr>
+        <td class="cmd">go run .</td>
+        <td>Run the main package in the current directory.</td>
+      </tr>
+      <tr>
+        <td class="cmd">go build ./...</td>
+        <td>Build all packages in the module. Finds compile errors everywhere.</td>
+      </tr>
+      <tr>
+        <td class="cmd">go test ./...</td>
+        <td>Run all tests in the module.</td>
+      </tr>
+      <tr>
+        <td class="cmd">go vet ./...</td>
+        <td>Run the static analyser. Catches bugs the compiler misses.</td>
+      </tr>
+      <tr>
+        <td class="cmd">go doc &lt;package&gt;</td>
+        <td>Read documentation for any package from the terminal.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Adding an External Dependency</h3>
+  <p>
+    Go's package ecosystem lives at <a href="https://pkg.go.dev" style="color:var(--go-blue)">pkg.go.dev</a>.
+    Adding a third-party package is one command:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">terminal</span><span class="code-label">adding a real external package</span></div>
+    <pre><span class="cm"># Add the popular chi router (we'll use this in M10)</span>
+<span class="prompt">$</span> go get github.com/go-chi/chi/v5
+
+<span class="cm"># go.mod is automatically updated:</span>
+<span class="out">require (
+    github.com/go-chi/chi/v5 v5.1.0
+)</span>
+
+<span class="cm"># go.sum is also updated — cryptographic verification</span>
+<span class="cm"># Never edit go.sum manually</span>
+
+<span class="cm"># Remove deps you no longer use</span>
+<span class="prompt">$</span> go mod tidy</pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-body">
+      <strong>go.sum is your security guarantee</strong>
+      <p>The <code>go.sum</code> file contains cryptographic hashes of every dependency. When you build, Go verifies these hashes against a global checksum database. If anyone tampers with a package after you added it, the build fails. This is supply-chain security baked into the toolchain — and it's one of the reasons Go is trusted for critical infrastructure.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §5 THE STANDARD LIBRARY -->
+  <h2><span class="section-num">§5</span> The Standard Library — Your Best Friend</h2>
+
+  <p>
+    Go ships with one of the most complete standard libraries of any language. Before
+    reaching for an external package, check if stdlib has what you need — it usually does.
+    Here are the packages you'll use most in real Go development:
+  </p>
+
+  <div class="stdlib-grid">
+    <div class="stdlib-card">
+      <h5>fmt</h5>
+      <p>Formatted I/O — printing, scanning, string formatting.</p>
+      <span class="ex">Println, Printf, Sprintf, Errorf</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>net/http</h5>
+      <p>HTTP client and server. Full-featured — no framework needed for most APIs.</p>
+      <span class="ex">ListenAndServe, HandleFunc, Get</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>encoding/json</h5>
+      <p>JSON encoding and decoding. Works seamlessly with structs.</p>
+      <span class="ex">Marshal, Unmarshal, NewEncoder</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>os</h5>
+      <p>Operating system interface — files, environment, args, exit.</p>
+      <span class="ex">Args, ReadFile, WriteFile, Getenv</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>strings</h5>
+      <p>String manipulation — everything you need, no third-party lib required.</p>
+      <span class="ex">Contains, Split, TrimSpace, ToLower</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>strconv</h5>
+      <p>Type conversions between strings and numeric types.</p>
+      <span class="ex">Atoi, Itoa, ParseFloat, FormatInt</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>time</h5>
+      <p>Time, durations, timers, formatting, parsing.</p>
+      <span class="ex">Now, Sleep, Since, Format, Parse</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>sync</h5>
+      <p>Concurrency primitives — WaitGroup, Mutex, Once, RWMutex.</p>
+      <span class="ex">WaitGroup, Mutex, Once</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>errors</h5>
+      <p>Error creation, wrapping, and inspection.</p>
+      <span class="ex">New, Is, As, Unwrap</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>log</h5>
+      <p>Simple logging with timestamps. Drop-in for fmt in production code.</p>
+      <span class="ex">Println, Printf, Fatal, Fatalf</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>math</h5>
+      <p>Mathematical functions and constants.</p>
+      <span class="ex">Sqrt, Abs, Round, Pi, MaxInt</span>
+    </div>
+    <div class="stdlib-card">
+      <h5>testing</h5>
+      <p>Built-in testing framework. No external library needed.</p>
+      <span class="ex">T.Run, T.Error, T.Fatal, Benchmark</span>
+    </div>
+  </div>
+
+  <div class="callout callout-fun">
+    <span class="callout-icon">🧠</span>
+    <div class="callout-body">
+      <strong>Go's stdlib philosophy — batteries included, but not bloated</strong>
+      <p>Go's standard library covers exactly what most programs need: HTTP, JSON, crypto, compression, SQL drivers, templates, testing. What it deliberately doesn't include: an ORM, a web framework, a logging framework. These choices are intentional — the Go team curates stdlib carefully and doesn't add things that have active community debate. When you need an opinionated layer, reach for a third-party package. But try stdlib first.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §6 PACKAGE DESIGN TIPS -->
+  <h2><span class="section-num">§6</span> Five Rules for Good Package Design</h2>
+
+  <p>
+    Knowing how packages work is one thing. Knowing how to design them well is
+    what separates readable Go from the other kind. Here are the five rules the
+    Go community has converged on:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">rules</span><span class="code-label">package design — the Go way</span></div>
+    <pre><span class="cm">// 1. Name packages after what they provide, not what they do
+//    Good: package user    Bad: package userhandler
+//    Good: package auth    Bad: package doauth
+
+// 2. Keep package names short, lowercase, one word
+//    Good: package cache   Bad: package cacheManager
+//    Good: package db      Bad: package database_utils
+
+// 3. Don't repeat the package name in function names
+//    Good: user.New()      Bad: user.NewUser()
+//    Good: http.Get()      Bad: http.HTTPGet()
+
+// 4. Small, focused packages beat large, kitchen-sink ones
+//    A package that does one thing well is more reusable
+//    than a package that does ten things adequately.
+
+// 5. Package-level variables are fine for config and singletons,
+//    but avoid mutable global state — it makes testing a nightmare.</span></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">👀</span>
+    <div class="callout-body">
+      <strong>The internal/ directory — package-private packages</strong>
+      <p>Go has a special convention: any package inside an <code>internal/</code> directory can only be imported by code in the parent directory and its subdirectories. It's Go's way of marking packages as "not for external consumption." You'll see this in large codebases: <code>myapp/internal/database</code> can be used by <code>myapp/</code> but not by other modules.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- EXERCISE -->
+  <div class="exercise">
+    <h4>🛠 Try It Yourself</h4>
+    <p>
+      Set up the <code>forge-app</code> project from this module and create the two
+      packages: <code>mathutils</code> and <code>stringutils</code>.
+      In <code>main.go</code>, use all five exported functions:
+      <code>Add</code>, <code>Divide</code>, <code>Average</code>,
+      <code>Truncate</code>, and <code>IsPalindrome</code>.
+    </p>
+    <p>
+      <strong>Bonus:</strong> Add a <code>Max(a, b int) int</code> function to
+      <code>mathutils</code> and a <code>WordCount(s string) int</code> function
+      to <code>stringutils</code>. Export both and call them from <code>main()</code>.
+    </p>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- CHECKPOINT -->
+  <div class="checkpoint">
+    <h4>✅ Module 09 Checkpoint</h4>
+    <ul>
+      <li>You know a package is a directory of <code>.go</code> files sharing the same package declaration</li>
+      <li>You understand the one rule of visibility: capital letter = exported, lowercase = unexported</li>
+      <li>You can create a multi-package project with its own subdirectories</li>
+      <li>You can import your own local packages using the full module path</li>
+      <li>You understand what <code>go.mod</code> is and what each line means</li>
+      <li>You can add external dependencies with <code>go get</code> and clean up with <code>go mod tidy</code></li>
+      <li>You know the most important standard library packages and what they're for</li>
+      <li>You know the five rules of good package design in Go</li>
+    </ul>
+  </div>
+
+  <!-- PROJECT TEASER -->
+  <div class="project-teaser">
+    <div class="proj-icon">🕷️</div>
+    <h3>Up Next: Concurrent Web Scraper</h3>
+    <p>
+      Theory complete. Now you combine M08's goroutines with M09's packages
+      to build a real concurrent web scraper — fetching multiple pages in
+      parallel and aggregating the results.
+    </p>
+    <span class="proj-badge">▶ Next: Project #2 — Concurrent Web Scraper</span>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="prev-btn" href="M08-goroutines-and-channels.html">← M08: Goroutines &amp; Channels</a>
+  <a class="next-btn" href="P02.html">Next: Project #2 — Web Scraper →</a>
+</div>
+
+</body>
+</html>

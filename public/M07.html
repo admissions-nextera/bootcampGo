@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>M07 — Structs & Interfaces | Gopher's Forge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --go-blue: #00ACD7;
+    --go-teal: #00D7A0;
+    --amber: #F5A623;
+    --red: #FF6B6B;
+    --purple: #B48EF7;
+    --text: #e8ecf5;
+    --muted: #7a859e;
+    --body-max: 760px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(12px); z-index: 100;
+  }
+  .topnav .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--text); }
+  .topnav .brand span { color: var(--go-blue); }
+  .module-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 14px; background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.25); border-radius: 999px; color: var(--go-blue); }
+  .time-badge { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ── HEADER ── */
+  .lesson-header { max-width: var(--body-max); margin: 0 auto; padding: 72px 24px 48px; }
+  .lesson-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-teal); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+  .lesson-title { font-family: 'Syne', sans-serif; font-size: clamp(36px, 6vw, 60px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 20px; }
+  .lesson-title .accent { color: var(--go-blue); }
+  .lesson-intro { font-size: 20px; color: var(--muted); line-height: 1.7; font-style: italic; border-left: 3px solid var(--go-blue); padding-left: 20px; margin-top: 28px; }
+  .lesson-meta { display: flex; gap: 24px; margin-top: 32px; flex-wrap: wrap; }
+  .meta-item { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted); }
+  .meta-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--go-teal); flex-shrink: 0; }
+
+  /* ── BODY ── */
+  .lesson-body { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* ── TYPOGRAPHY ── */
+  h2 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin-top: 56px; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; gap: 12px; }
+  h2 .section-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-blue); background: rgba(0,172,215,0.1); border: 1px solid rgba(0,172,215,0.2); border-radius: 6px; padding: 3px 9px; font-weight: 400; }
+  h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-top: 40px; margin-bottom: 12px; color: var(--text); }
+  p { margin-bottom: 20px; }
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--go-teal); font-style: italic; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; background: rgba(0,172,215,0.1); color: var(--go-blue); padding: 2px 7px; border-radius: 5px; }
+  blockquote { border-left: 3px solid var(--go-blue); padding: 4px 0 4px 24px; margin: 32px 0; font-style: italic; color: var(--muted); font-size: 19px; }
+  blockquote cite { display: block; margin-top: 10px; font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--go-blue); }
+
+  /* ── CALLOUTS ── */
+  .callout { border-radius: 12px; padding: 20px 24px; margin: 32px 0; display: flex; gap: 16px; align-items: flex-start; }
+  .callout-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; font-family: 'Syne', sans-serif; font-size: 15px; margin-bottom: 6px; }
+  .callout-body p { margin: 0; font-size: 15px; line-height: 1.7; }
+  .callout-info  { background: rgba(0,172,215,0.07);  border: 1px solid rgba(0,172,215,0.2); }
+  .callout-info  .callout-body p, .callout-info  .callout-body strong { color: var(--go-blue); }
+  .callout-tip   { background: rgba(0,215,160,0.07);  border: 1px solid rgba(0,215,160,0.2); }
+  .callout-tip   .callout-body p, .callout-tip   .callout-body strong { color: var(--go-teal); }
+  .callout-fun   { background: rgba(245,166,35,0.07); border: 1px solid rgba(245,166,35,0.2); }
+  .callout-fun   .callout-body p, .callout-fun   .callout-body strong { color: var(--amber); }
+  .callout-warn  { background: rgba(255,107,107,0.07); border: 1px solid rgba(255,107,107,0.2); }
+  .callout-warn  .callout-body p, .callout-warn  .callout-body strong { color: var(--red); }
+  .callout-purple { background: rgba(180,142,247,0.07); border: 1px solid rgba(180,142,247,0.25); }
+  .callout-purple .callout-body p, .callout-purple .callout-body strong { color: var(--purple); }
+
+  /* ── CODE BLOCKS ── */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 28px 0; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .code-lang  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--go-blue); letter-spacing: 0.1em; text-transform: uppercase; }
+  .code-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  pre { padding: 24px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.7; }
+  .kw  { color: #569cd6; }
+  .fn  { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .cm  { color: #6a9955; font-style: italic; }
+  .pk  { color: #4ec9b0; }
+  .num { color: #b5cea8; }
+  .op  { color: #d4d4d4; }
+  .prompt { color: var(--go-teal); user-select: none; }
+  .out    { color: var(--muted); }
+  .err    { color: var(--red); }
+
+  /* ── VS BLOCK ── */
+  .vs-block { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0; }
+  .vs-side { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .vs-label { padding: 8px 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .vs-label.bad     { color: var(--red);      background: rgba(255,107,107,0.06); }
+  .vs-label.good    { color: var(--go-teal);  background: rgba(0,215,160,0.06); }
+  .vs-label.neutral { color: var(--muted);    background: rgba(255,255,255,0.03); }
+  .vs-side pre { padding: 18px 20px; font-size: 13px; }
+
+  /* ── ANNOTATED CODE ── */
+  .annotated-code {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin: 28px 0;
+    width: min(960px, 92vw); margin-left: 50%; transform: translateX(-50%);
+  }
+  .ann-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .ann-header span { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .ann-header .lang { color: var(--go-blue); text-transform: uppercase; letter-spacing: 0.1em; }
+  .ann-header .fname { color: var(--muted); }
+  .ann-line { display: grid; grid-template-columns: 1fr 320px; border-bottom: 1px solid rgba(37,42,56,0.5); }
+  .ann-line:last-child { border-bottom: none; }
+  .ann-code { padding: 12px 24px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.6; border-right: 1px solid var(--border); white-space: pre; overflow-x: auto; }
+  .ann-note { padding: 12px 18px; font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.55; display: flex; align-items: center; background: rgba(255,255,255,0.015); word-break: break-word; }
+  .ann-note.highlight { color: var(--go-teal); background: rgba(0,215,160,0.04); }
+  .ann-note.warn      { color: var(--amber);   background: rgba(245,166,35,0.04); }
+  .ann-note.info      { color: var(--go-blue);  background: rgba(0,172,215,0.04); }
+
+  /* ── STRUCT DIAGRAM ── */
+  .struct-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin: 28px 0;
+  }
+  .struct-diagram h5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .struct-box {
+    border: 2px solid var(--go-blue);
+    border-radius: 12px;
+    overflow: hidden;
+    display: inline-block;
+    min-width: 280px;
+  }
+  .struct-title {
+    background: rgba(0,172,215,0.15);
+    padding: 10px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--go-blue);
+    border-bottom: 2px solid var(--go-blue);
+  }
+  .struct-field {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .struct-field:last-child { border-bottom: none; }
+  .sf-name { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); min-width: 100px; }
+  .sf-type { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--pk); }
+  .sf-val  { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--go-teal); margin-left: auto; }
+
+  /* ── INTERFACE DIAGRAM ── */
+  .interface-flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+    margin: 28px 0;
+  }
+  .if-box {
+    background: var(--surface);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .if-box.interface-box { border: 2px solid var(--purple); }
+  .if-box.concrete-box  { border: 2px solid var(--go-teal); }
+  .if-title {
+    padding: 10px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 700;
+    border-bottom: 1px solid var(--border);
+  }
+  .if-title.purple { background: rgba(180,142,247,0.12); color: var(--purple); }
+  .if-title.teal   { background: rgba(0,215,160,0.10);   color: var(--go-teal); }
+  .if-method {
+    padding: 8px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--muted);
+    border-bottom: 1px solid rgba(37,42,56,0.5);
+  }
+  .if-method:last-child { border-bottom: none; }
+  .if-method.satisfied { color: var(--go-teal); }
+  .if-arrow {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--muted);
+  }
+  .if-arrow .arrow-label { color: var(--go-blue); font-size: 11px; display: block; margin-top: 4px; }
+
+  /* ── EXERCISE ── */
+  .exercise { border: 1px solid rgba(245,166,35,0.3); background: rgba(245,166,35,0.04); border-radius: 12px; padding: 24px 28px; margin: 36px 0; }
+  .exercise h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--amber); margin-bottom: 12px; }
+  .exercise p  { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); margin-bottom: 12px; line-height: 1.6; }
+  .exercise p:last-child { margin-bottom: 0; }
+
+  /* ── CHECKPOINT ── */
+  .checkpoint { background: rgba(0,215,160,0.06); border: 1px solid rgba(0,215,160,0.25); border-radius: 12px; padding: 24px 28px; margin: 40px 0; }
+  .checkpoint h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--go-teal); margin-bottom: 12px; }
+  .checkpoint ul { list-style: none; padding: 0; }
+  .checkpoint ul li { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text); padding: 6px 0; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+  .checkpoint ul li::before { content: '✓'; color: var(--go-teal); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav { max-width: var(--body-max); margin: 0 auto; padding: 0 24px 80px; display: flex; justify-content: space-between; }
+  .prev-btn, .next-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; text-decoration: none; transition: opacity 0.2s; }
+  .prev-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .next-btn { background: var(--go-blue); color: #fff; }
+  .prev-btn:hover, .next-btn:hover { opacity: 0.85; text-decoration: none; }
+
+  @media (max-width: 700px) {
+    .topnav { padding: 16px 20px; }
+    .lesson-header, .lesson-body { padding-left: 20px; padding-right: 20px; }
+    .vs-block { grid-template-columns: 1fr; }
+    .interface-flow { grid-template-columns: 1fr; }
+    .if-arrow { transform: rotate(90deg); }
+    .ann-note { display: none; }
+    .ann-line { grid-template-columns: 1fr; }
+    .ann-code { border-right: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="brand">Gopher's <span>Forge</span></div>
+  <span class="module-badge">M07</span>
+  <span class="time-badge">⏱ 1 hour</span>
+</nav>
+
+<!-- HEADER -->
+<header class="lesson-header">
+  <div class="lesson-eyebrow">Day 2 · Module 07 · Object-Oriented Go</div>
+  <h1 class="lesson-title">Structs &amp;<br/><span class="accent">Interfaces</span></h1>
+  <p class="lesson-intro">
+    Go doesn't have classes. It doesn't have inheritance. And it turns out — it doesn't
+    need them. Structs hold your data. Methods define behaviour. Interfaces describe
+    what something can do. Together, these three tools let you write clean, flexible,
+    maintainable code that larger languages need a PhD to achieve.
+  </p>
+  <div class="lesson-meta">
+    <div class="meta-item"><span class="dot"></span> Day 2 of 2</div>
+    <div class="meta-item"><span class="dot"></span> 1 hour</div>
+    <div class="meta-item"><span class="dot"></span> structs · methods · interfaces</div>
+  </div>
+</header>
+
+<!-- BODY -->
+<main class="lesson-body">
+
+  <hr class="divider"/>
+
+  <!-- §1 STRUCTS -->
+  <h2><span class="section-num">§1</span> Structs — Custom Types That Hold Data</h2>
+
+  <p>
+    A struct is Go's way of grouping related data under a single custom type.
+    You used one in Project #1 — the <code>Task</code> struct. Now let's understand
+    exactly what's happening under the hood.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">defining and using a struct</span></div>
+    <pre><span class="cm">// Define a struct type — this is a blueprint, not an instance</span>
+<span class="kw">type</span> User <span class="kw">struct</span> {
+    ID       <span class="kw">int</span>
+    Name     <span class="kw">string</span>
+    Email    <span class="kw">string</span>
+    IsAdmin  <span class="kw">bool</span>
+    Score    <span class="kw">float64</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="cm">// Create an instance — a struct literal</span>
+    u := User{
+        ID:      <span class="num">1</span>,
+        Name:    <span class="str">"Anas"</span>,
+        Email:   <span class="str">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b7d6d9d6c4f7d1d8c5d0d299d0d8">[email&#160;protected]</a>"</span>,
+        IsAdmin: <span class="kw">true</span>,
+        Score:   <span class="num">97.5</span>,
+    }
+
+    <span class="cm">// Access fields with dot notation</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(u.Name)     <span class="cm">// Anas</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(u.Score)    <span class="cm">// 97.5</span>
+
+    <span class="cm">// Modify a field</span>
+    u.Score = <span class="num">100</span>
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"%s is now at %.0f!\n"</span>, u.Name, u.Score)
+    <span class="cm">// Anas is now at 100!</span>
+}</pre>
+  </div>
+
+  <!-- Struct Diagram -->
+  <div class="struct-diagram">
+    <h5>// User struct — memory layout</h5>
+    <div class="struct-box">
+      <div class="struct-title">User</div>
+      <div class="struct-field">
+        <span class="sf-name">ID</span>
+        <span class="sf-type">int</span>
+        <span class="sf-val">1</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-name">Name</span>
+        <span class="sf-type">string</span>
+        <span class="sf-val">"Anas"</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-name">Email</span>
+        <span class="sf-type">string</span>
+        <span class="sf-val">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b9d8d7d8caf9dfd6cbdedc97ded6">[email&#160;protected]</a>"</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-name">IsAdmin</span>
+        <span class="sf-type">bool</span>
+        <span class="sf-val">true</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-name">Score</span>
+        <span class="sf-type">float64</span>
+        <span class="sf-val">97.5</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>Struct Zero Values & Partial Initialization</h3>
+  <p>
+    Any field you don't set gets its zero value automatically — just like regular variables.
+    This means you can create partial structs safely:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">partial initialization</span></div>
+    <pre><span class="cm">// Only set the fields you care about — rest get zero values</span>
+guest := User{Name: <span class="str">"Guest"</span>}
+<span class="pk">fmt</span>.<span class="fn">Println</span>(guest.ID)       <span class="cm">// 0</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(guest.Email)    <span class="cm">// ""</span>
+<span class="pk">fmt</span>.<span class="fn">Println</span>(guest.IsAdmin)  <span class="cm">// false</span></pre>
+  </div>
+
+  <h3>Pointers to Structs</h3>
+  <p>
+    By default, when you pass a struct to a function, Go makes a copy. If you want the
+    function to modify the original, you pass a <strong>pointer</strong> to it using <code>&amp;</code>:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">value vs pointer — the critical difference</span></div>
+    <pre><span class="cm">// Value — function gets a COPY. Original unchanged.</span>
+<span class="kw">func</span> <span class="fn">promoteByValue</span>(u User) {
+    u.IsAdmin = <span class="kw">true</span>   <span class="cm">// only changes the copy</span>
+}
+
+<span class="cm">// Pointer — function gets the REAL thing. Original modified.</span>
+<span class="kw">func</span> <span class="fn">promoteByPointer</span>(u *User) {
+    u.IsAdmin = <span class="kw">true</span>   <span class="cm">// modifies the original</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    anas := User{Name: <span class="str">"Anas"</span>, IsAdmin: <span class="kw">false</span>}
+
+    <span class="fn">promoteByValue</span>(anas)
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(anas.IsAdmin)   <span class="cm">// false — copy was changed, not anas</span>
+
+    <span class="fn">promoteByPointer</span>(&amp;anas)    <span class="cm">// &amp; takes the address of anas</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(anas.IsAdmin)   <span class="cm">// true — anas was changed!</span>
+}</pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-body">
+      <strong>Go auto-dereferences struct pointers</strong>
+      <p>When you have a pointer to a struct (<code>u *User</code>), you'd normally need to write <code>(*u).IsAdmin</code> to access a field. But Go is smart — it lets you write <code>u.IsAdmin</code> directly and handles the dereferencing for you. This is why pointer methods feel identical to value methods at the call site.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §2 METHODS -->
+  <h2><span class="section-num">§2</span> Methods — Behaviour Attached to Types</h2>
+
+  <p>
+    A method is just a function with a special <strong>receiver</strong> argument —
+    it's associated with a specific type. This is how Go gives behaviour to structs
+    without needing classes.
+  </p>
+
+  <div class="annotated-code">
+    <div class="ann-header">
+      <span class="lang">Go</span>
+      <span class="fname">method anatomy — annotated</span>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"><span class="kw">func</span> (u User) <span class="fn">Greet</span>() <span class="kw">string</span> {</div>
+      <div class="ann-note highlight">The <code>(u User)</code> part is the receiver. It says: "this method belongs to the User type, and inside this function, the instance is called u."</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">    <span class="kw">return</span> <span class="pk">fmt</span>.<span class="fn">Sprintf</span>(<span class="str">"Hi, I'm %s!"</span>, u.Name)</div>
+      <div class="ann-note">Access the struct's fields through the receiver variable u.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">}</div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code"> </div>
+      <div class="ann-note"> </div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">anas := User{Name: <span class="str">"Anas"</span>}</div>
+      <div class="ann-note">Create an instance.</div>
+    </div>
+    <div class="ann-line">
+      <div class="ann-code">msg := anas.<span class="fn">Greet</span>()</div>
+      <div class="ann-note highlight">Call the method using dot notation — just like accessing a field, but with parentheses. Reads naturally: "anas, greet yourself."</div>
+    </div>
+  </div>
+
+  <h3>Value Receivers vs Pointer Receivers</h3>
+
+  <p>
+    Just like with functions, you choose between value and pointer receivers.
+    The rule of thumb is simple: <strong>if the method needs to modify the struct, use a pointer receiver.</strong>
+    If it only reads, a value receiver is fine.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">value vs pointer receivers</span></div>
+    <pre><span class="kw">type</span> Score <span class="kw">struct</span> {
+    Value  <span class="kw">int</span>
+    Player <span class="kw">string</span>
+}
+
+<span class="cm">// Value receiver — reads only, no modification</span>
+<span class="kw">func</span> (s Score) <span class="fn">Display</span>() <span class="kw">string</span> {
+    <span class="kw">return</span> <span class="pk">fmt</span>.<span class="fn">Sprintf</span>(<span class="str">"%s: %d points"</span>, s.Player, s.Value)
+}
+
+<span class="cm">// Pointer receiver — modifies the struct</span>
+<span class="kw">func</span> (s *Score) <span class="fn">AddPoints</span>(n <span class="kw">int</span>) {
+    s.Value += n
+}
+
+<span class="kw">func</span> (s *Score) <span class="fn">Reset</span>() {
+    s.Value = <span class="num">0</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    s := Score{Player: <span class="str">"Anas"</span>, Value: <span class="num">0</span>}
+
+    s.<span class="fn">AddPoints</span>(<span class="num">50</span>)
+    s.<span class="fn">AddPoints</span>(<span class="num">30</span>)
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(s.<span class="fn">Display</span>())   <span class="cm">// Anas: 80 points</span>
+
+    s.<span class="fn">Reset</span>()
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(s.<span class="fn">Display</span>())   <span class="cm">// Anas: 0 points</span>
+}</pre>
+  </div>
+
+  <h3>The String() Method — Built-in Formatting Hook</h3>
+  <p>
+    If your type has a method called <code>String() string</code>, Go's <code>fmt</code>
+    package will call it automatically whenever you print the value. This is Go's
+    equivalent of <code>toString()</code> in other languages:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">the String() method</span></div>
+    <pre><span class="kw">type</span> User <span class="kw">struct</span> {
+    Name  <span class="kw">string</span>
+    Score <span class="kw">float64</span>
+}
+
+<span class="cm">// fmt calls this automatically when printing a User</span>
+<span class="kw">func</span> (u User) <span class="fn">String</span>() <span class="kw">string</span> {
+    <span class="kw">return</span> <span class="pk">fmt</span>.<span class="fn">Sprintf</span>(<span class="str">"User(%s, score=%.1f)"</span>, u.Name, u.Score)
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    u := User{Name: <span class="str">"Anas"</span>, Score: <span class="num">97.5</span>}
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(u)    <span class="cm">// User(Anas, score=97.5)  ← String() called automatically</span>
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"%v\n"</span>, u)  <span class="cm">// same result</span>
+}</pre>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §3 INTERFACES -->
+  <h2><span class="section-num">§3</span> Interfaces — Describing What Something Can Do</h2>
+
+  <p>
+    An interface is a contract. It says: "any type that has <em>these methods</em>
+    satisfies this interface." You don't declare that a type implements an interface —
+    if it has the right methods, it automatically qualifies. This is called
+    <strong>implicit interface satisfaction</strong>, and it's one of Go's most elegant features.
+  </p>
+
+  <blockquote>
+    "The bigger the interface, the weaker the abstraction."
+    <cite>— Rob Pike</cite>
+  </blockquote>
+
+  <p>
+    Go interfaces tend to be tiny — often just one or two methods. The most famous
+    is the <code>Stringer</code> interface from the <code>fmt</code> package, which has
+    exactly one method: <code>String() string</code>. That's it.
+  </p>
+
+  <div class="vs-block">
+    <div class="vs-side">
+      <div class="vs-label bad">❌ Java / C# (explicit)</div>
+      <pre style="padding:18px 20px; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--muted)"><span class="cm">// Must explicitly declare</span>
+<span class="cm">// "I implement this interface"</span>
+<span class="kw">class</span> Dog <span class="kw">implements</span> Animal {
+    <span class="cm">// Java forces you to say it</span>
+}</pre>
+    </div>
+    <div class="vs-side">
+      <div class="vs-label good">✅ Go (implicit)</div>
+      <pre style="padding:18px 20px; font-family:'JetBrains Mono',monospace; font-size:12.5px;"><span class="cm">// Just implement the methods.</span>
+<span class="cm">// Go figures out the rest.</span>
+<span class="kw">func</span> (d Dog) <span class="fn">Speak</span>() <span class="kw">string</span> {
+    <span class="kw">return</span> <span class="str">"Woof!"</span>
+    <span class="cm">// If Animal needs Speak(),</span>
+    <span class="cm">// Dog satisfies Animal. Done.</span>
+}</pre>
+    </div>
+  </div>
+
+  <h3>Defining and Using an Interface</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">a real interface example</span></div>
+    <pre><span class="cm">// Define the interface — what behaviour do we need?</span>
+<span class="kw">type</span> Shape <span class="kw">interface</span> {
+    <span class="fn">Area</span>()      <span class="kw">float64</span>
+    <span class="fn">Perimeter</span>() <span class="kw">float64</span>
+}
+
+<span class="cm">// Circle satisfies Shape — has both methods</span>
+<span class="kw">type</span> Circle <span class="kw">struct</span> { Radius <span class="kw">float64</span> }
+
+<span class="kw">func</span> (c Circle) <span class="fn">Area</span>()      <span class="kw">float64</span> { <span class="kw">return</span> <span class="num">3.14159</span> * c.Radius * c.Radius }
+<span class="kw">func</span> (c Circle) <span class="fn">Perimeter</span>() <span class="kw">float64</span> { <span class="kw">return</span> <span class="num">2</span> * <span class="num">3.14159</span> * c.Radius }
+
+<span class="cm">// Rectangle also satisfies Shape</span>
+<span class="kw">type</span> Rectangle <span class="kw">struct</span> { Width, Height <span class="kw">float64</span> }
+
+<span class="kw">func</span> (r Rectangle) <span class="fn">Area</span>()      <span class="kw">float64</span> { <span class="kw">return</span> r.Width * r.Height }
+<span class="kw">func</span> (r Rectangle) <span class="fn">Perimeter</span>() <span class="kw">float64</span> { <span class="kw">return</span> <span class="num">2</span> * (r.Width + r.Height) }
+
+<span class="cm">// This function accepts ANY type that satisfies Shape</span>
+<span class="kw">func</span> <span class="fn">printShapeInfo</span>(s Shape) {
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Area: %.2f | Perimeter: %.2f\n"</span>, s.<span class="fn">Area</span>(), s.<span class="fn">Perimeter</span>())
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    c := Circle{Radius: <span class="num">5</span>}
+    r := Rectangle{Width: <span class="num">4</span>, Height: <span class="num">6</span>}
+
+    <span class="fn">printShapeInfo</span>(c)  <span class="cm">// Area: 78.54 | Perimeter: 31.42</span>
+    <span class="fn">printShapeInfo</span>(r)  <span class="cm">// Area: 24.00 | Perimeter: 20.00</span>
+}</pre>
+  </div>
+
+  <!-- Interface Diagram -->
+  <div class="interface-flow">
+    <div class="if-box interface-box">
+      <div class="if-title purple">Shape (interface)</div>
+      <div class="if-method">Area() float64</div>
+      <div class="if-method">Perimeter() float64</div>
+    </div>
+    <div class="if-arrow">
+      satisfies ✓
+      <span class="arrow-label">implicit</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="if-box concrete-box">
+        <div class="if-title teal">Circle (struct)</div>
+        <div class="if-method satisfied">Area() ✓</div>
+        <div class="if-method satisfied">Perimeter() ✓</div>
+      </div>
+      <div class="if-box concrete-box">
+        <div class="if-title teal">Rectangle (struct)</div>
+        <div class="if-method satisfied">Area() ✓</div>
+        <div class="if-method satisfied">Perimeter() ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §4 THE EMPTY INTERFACE -->
+  <h2><span class="section-num">§4</span> The Empty Interface & Type Assertions</h2>
+
+  <p>
+    The empty interface <code>interface{}</code> (or its modern alias <code>any</code>) has
+    zero methods — which means <em>every type in Go satisfies it</em>. It's the
+    "accept anything" type, used when you genuinely don't know what type you'll receive:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">the empty interface</span></div>
+    <pre><span class="cm">// any = interface{} — accepts literally any type</span>
+<span class="kw">func</span> <span class="fn">describe</span>(v <span class="kw">any</span>) {
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Value: %v | Type: %T\n"</span>, v, v)
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="fn">describe</span>(<span class="num">42</span>)          <span class="cm">// Value: 42      | Type: int</span>
+    <span class="fn">describe</span>(<span class="str">"hello"</span>)     <span class="cm">// Value: hello   | Type: string</span>
+    <span class="fn">describe</span>(<span class="kw">true</span>)        <span class="cm">// Value: true    | Type: bool</span>
+    <span class="fn">describe</span>([]<span class="kw">int</span>{<span class="num">1</span>,<span class="num">2</span>}) <span class="cm">// Value: [1 2]   | Type: []int</span>
+}</pre>
+  </div>
+
+  <h3>Type Assertions — Reclaiming the Concrete Type</h3>
+  <p>
+    When you have an <code>any</code>, you can assert the underlying type back using
+    the <code>.(Type)</code> syntax. Use the comma-ok pattern to do it safely:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">type assertions — safe and unsafe</span></div>
+    <pre><span class="kw">var</span> v <span class="kw">any</span> = <span class="str">"Gopher's Forge"</span>
+
+<span class="cm">// ❌ Unsafe — panics if wrong type</span>
+s := v.(<span class="kw">string</span>)
+<span class="pk">fmt</span>.<span class="fn">Println</span>(s)   <span class="cm">// works here, but dangerous</span>
+
+<span class="cm">// ✅ Safe — comma-ok pattern (same as map lookups!)</span>
+s2, ok := v.(<span class="kw">string</span>)
+<span class="kw">if</span> ok {
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"It's a string:"</span>, s2)
+} <span class="kw">else</span> {
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(<span class="str">"Not a string"</span>)
+}
+
+<span class="cm">// Type switch — clean multi-type handling</span>
+<span class="kw">func</span> <span class="fn">classify</span>(v <span class="kw">any</span>) {
+    <span class="kw">switch</span> t := v.(<span class="kw">type</span>) {
+    <span class="kw">case</span> <span class="kw">int</span>:
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Integer: %d\n"</span>, t)
+    <span class="kw">case</span> <span class="kw">string</span>:
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"String: %q (len %d)\n"</span>, t, len(t))
+    <span class="kw">case</span> <span class="kw">bool</span>:
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Boolean: %v\n"</span>, t)
+    <span class="kw">default</span>:
+        <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Unknown type: %T\n"</span>, t)
+    }
+}</pre>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>Use any sparingly</strong>
+      <p>The empty interface turns off Go's type checker for that value. You lose all compile-time safety. Use it only when you genuinely need to handle multiple unknown types — like in JSON parsing or generic utility functions. In most cases, a concrete type or a specific interface is the right choice.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §5 STRUCT EMBEDDING -->
+  <h2><span class="section-num">§5</span> Struct Embedding — Go's Answer to Inheritance</h2>
+
+  <p>
+    Go has no inheritance. But it has <strong>embedding</strong> — including one struct
+    inside another. The outer struct automatically gets all the fields and methods of
+    the embedded struct. It's composition instead of inheritance, and it's cleaner:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">struct embedding</span></div>
+    <pre><span class="kw">type</span> Base <span class="kw">struct</span> {
+    ID        <span class="kw">int</span>
+    CreatedAt <span class="kw">string</span>
+}
+
+<span class="kw">func</span> (b Base) <span class="fn">Describe</span>() <span class="kw">string</span> {
+    <span class="kw">return</span> <span class="pk">fmt</span>.<span class="fn">Sprintf</span>(<span class="str">"ID: %d, Created: %s"</span>, b.ID, b.CreatedAt)
+}
+
+<span class="kw">type</span> User <span class="kw">struct</span> {
+    Base             <span class="cm">// ← embedded — no field name, just the type</span>
+    Name  <span class="kw">string</span>
+    Email <span class="kw">string</span>
+}
+
+<span class="kw">type</span> Product <span class="kw">struct</span> {
+    Base             <span class="cm">// ← also embedded in Product</span>
+    Title <span class="kw">string</span>
+    Price <span class="kw">float64</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    u := User{
+        Base:  Base{ID: <span class="num">1</span>, CreatedAt: <span class="str">"2024-01-01"</span>},
+        Name:  <span class="str">"Anas"</span>,
+        Email: <span class="str">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="99f8f7f8ead9fff6ebfefcb7fef6">[email&#160;protected]</a>"</span>,
+    }
+
+    <span class="cm">// Access embedded fields directly — no Base. prefix needed</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(u.ID)           <span class="cm">// 1 — promoted from Base</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(u.Name)         <span class="cm">// Anas</span>
+    <span class="pk">fmt</span>.<span class="fn">Println</span>(u.<span class="fn">Describe</span>())  <span class="cm">// ID: 1, Created: 2024-01-01 — promoted method!</span>
+}</pre>
+  </div>
+
+  <div class="callout callout-fun">
+    <span class="callout-icon">🧠</span>
+    <div class="callout-body">
+      <strong>Composition over inheritance — and it's better</strong>
+      <p>In classical OOP, inheritance creates tight coupling — change the parent class and you risk breaking every child. Embedding is explicit. You can see exactly where each field and method comes from. It's like the Go compiler requires you to be honest about what you're reusing. Senior devs from Java and C++ often say Go's approach actually produces cleaner code.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- §6 PUTTING IT TOGETHER -->
+  <h2><span class="section-num">§6</span> Putting It All Together</h2>
+
+  <p>
+    Let's build a small notification system using structs, methods, and interfaces —
+    the kind of design pattern you'll see in real codebases:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">Go</span><span class="code-label">notifier.go — type this and run it</span></div>
+    <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="cm">// Notifier interface — anything that can send a notification</span>
+<span class="kw">type</span> Notifier <span class="kw">interface</span> {
+    <span class="fn">Send</span>(message <span class="kw">string</span>) <span class="kw">error</span>
+    <span class="fn">Name</span>() <span class="kw">string</span>
+}
+
+<span class="cm">// EmailNotifier satisfies Notifier</span>
+<span class="kw">type</span> EmailNotifier <span class="kw">struct</span> {
+    ToAddress <span class="kw">string</span>
+}
+
+<span class="kw">func</span> (e EmailNotifier) <span class="fn">Send</span>(message <span class="kw">string</span>) <span class="kw">error</span> {
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"📧 Email → %s: %s\n"</span>, e.ToAddress, message)
+    <span class="kw">return</span> <span class="kw">nil</span>
+}
+
+<span class="kw">func</span> (e EmailNotifier) <span class="fn">Name</span>() <span class="kw">string</span> { <span class="kw">return</span> <span class="str">"Email"</span> }
+
+<span class="cm">// SMSNotifier also satisfies Notifier</span>
+<span class="kw">type</span> SMSNotifier <span class="kw">struct</span> {
+    PhoneNumber <span class="kw">string</span>
+}
+
+<span class="kw">func</span> (s SMSNotifier) <span class="fn">Send</span>(message <span class="kw">string</span>) <span class="kw">error</span> {
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"📱 SMS → %s: %s\n"</span>, s.PhoneNumber, message)
+    <span class="kw">return</span> <span class="kw">nil</span>
+}
+
+<span class="kw">func</span> (s SMSNotifier) <span class="fn">Name</span>() <span class="kw">string</span> { <span class="kw">return</span> <span class="str">"SMS"</span> }
+
+<span class="cm">// sendAll takes any slice of Notifiers — works with Email, SMS, or anything else</span>
+<span class="kw">func</span> <span class="fn">sendAll</span>(notifiers []Notifier, message <span class="kw">string</span>) {
+    <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"Broadcasting: %q\n\n"</span>, message)
+    <span class="kw">for</span> _, n := <span class="kw">range</span> notifiers {
+        err := n.<span class="fn">Send</span>(message)
+        <span class="kw">if</span> err != <span class="kw">nil</span> {
+            <span class="pk">fmt</span>.<span class="fn">Printf</span>(<span class="str">"  ❌ %s failed: %v\n"</span>, n.<span class="fn">Name</span>(), err)
+        }
+    }
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    notifiers := []Notifier{
+        EmailNotifier{ToAddress: <span class="str">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="31505f504271575e4356541f565e">[email&#160;protected]</a>"</span>},
+        SMSNotifier{PhoneNumber: <span class="str">"+1-555-GOPHER"</span>},
+        EmailNotifier{ToAddress: <span class="str">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="413524202c01272e3326246f262e">[email&#160;protected]</a>"</span>},
+    }
+
+    <span class="fn">sendAll</span>(notifiers, <span class="str">"Day 2 of Gopher's Forge has begun! 🔨"</span>)
+}</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">terminal</span><span class="code-label">expected output</span></div>
+    <pre><span class="out">Broadcasting: "Day 2 of Gopher's Forge has begun! 🔨"
+
+📧 Email → <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="20414e415360464f5247450e474f">[email&#160;protected]</a>: Day 2 of Gopher's Forge has begun! 🔨
+📱 SMS → +1-555-GOPHER: Day 2 of Gopher's Forge has begun! 🔨
+📧 Email → <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="314554505c71575e4356541f565e">[email&#160;protected]</a>: Day 2 of Gopher's Forge has begun! 🔨</span></pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <div class="callout-body">
+      <strong>This is the power of interfaces</strong>
+      <p><code>sendAll</code> doesn't know or care whether it's sending emails, SMS, Slack messages, or push notifications. As long as the type satisfies <code>Notifier</code>, it works. Adding a new notification channel later requires zero changes to <code>sendAll</code> — just define a new struct with <code>Send()</code> and <code>Name()</code> methods. This is extensible design the Go way.</p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- EXERCISE -->
+  <div class="exercise">
+    <h4>🛠 Try It Yourself</h4>
+    <p>
+      Add a <code>SlackNotifier</code> struct to <code>notifier.go</code> with a
+      <code>Channel</code> field (string). Implement the <code>Notifier</code> interface
+      on it so it prints: <code>💬 Slack → #channel: message</code>.
+    </p>
+    <p>
+      Add it to the <code>notifiers</code> slice in <code>main()</code> and run
+      the program again. Notice that <code>sendAll</code> needed zero changes —
+      it just worked. <em>That's</em> the interface payoff.
+    </p>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- CHECKPOINT -->
+  <div class="checkpoint">
+    <h4>✅ Module 07 Checkpoint</h4>
+    <ul>
+      <li>You can define structs with named fields and access them with dot notation</li>
+      <li>You understand struct zero values and partial initialization</li>
+      <li>You know the difference between value receivers (read-only) and pointer receivers (modify)</li>
+      <li>You can write methods and call them with dot notation</li>
+      <li>You implemented the <code>String()</code> method for custom formatting</li>
+      <li>You understand implicit interface satisfaction — no <code>implements</code> keyword needed</li>
+      <li>You can define interfaces and write functions that accept any satisfying type</li>
+      <li>You know what the empty interface <code>any</code> is and when (not) to use it</li>
+      <li>You can use type assertions and type switches safely</li>
+
+      <li>You understand struct embedding as Go's alternative to inheritance</li>
+    </ul>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="prev-btn" href="P01-cli-task-manager.html">← P01: CLI Task Manager</a>
+  <a class="next-btn" href="M08-goroutines-and-channels.html">Next: M08 — Goroutines & Channels →</a>
+</div>
+
+</body>
+</html>
